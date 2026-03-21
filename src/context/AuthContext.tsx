@@ -12,19 +12,9 @@ interface AuthContextType {
   logout: () => Promise<void>
   // Функция для выхода из системы.
 
-  isAdmin: boolean
-  // Флаг, указывающий, является ли пользователь администратором.
-
-  isCoach: boolean
-  // Флаг, укаазывающий, является ли пользователь тренером
+  userRole: string
 
   isLoading: boolean //Чтобы при перезагрузке не выводилось всегда сообщение о том, что нужно сделать вход
-}
-
-enum UserRole {
-  Admin = "admin",
-  User = "user",
-  Coach = "coach",
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -38,6 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Локальное состояние для хранения информации о текущем пользователе.
 
   const [isLoading, setIsLoading] = useState(true)
+  const [userRole, setUserRole] = useState("")
 
 
   useEffect(() => {
@@ -64,9 +55,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("user", JSON.stringify(response))
       // Сохраняем данные пользователя в локальном хранилище.
       setUser(response)
+      setUserRole(response.userRole!)
       // Обновляем состояние пользователя.
     } catch (error) {
-      console.error("Ошибка входа:", error)
+      console.error(error)
       throw error // Или вернуть пользовательское сообщение об ошибке.
     }
   }
@@ -80,15 +72,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem("user")
     // Удаляем данные пользователя из локального хранилища.
     setUser(null)
+    setUserRole("")
     // Сбрасываем состояние пользователя.
   }
 
-  const isAdmin = user?.userRole === UserRole.Admin
-  const isCoach = user?.userRole === UserRole.Coach
-  // Проверяем, является ли пользователь администратором (определяется по полю `userRole`).
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAdmin, isCoach, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, userRole, isLoading }}>
       {/* Передаем данные о пользователе и методы авторизации в контекст. */}
       {children}
     </AuthContext.Provider>
