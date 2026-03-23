@@ -11,6 +11,7 @@ import TrainingsPage from './components/Pages/TrainingsPage';
 import SchedulePage from './components/Pages/SchedulePage';
 import TeamPage from './components/Pages/TeamPage';
 import ProfilePage from './components/Pages/ProfilePage';
+import AdminPage from './components/Pages/AdminPage';
 
 enum UserRole {
   Admin = "Admin",
@@ -32,6 +33,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement, allowedRoles?: st
 
   if (allowedRoles && allowedRoles.length > 0 && (!userRole || !allowedRoles.includes(userRole))) {
     alert("У вас недостаточно прав для доступа к этой странице.");
+    console.log(userRole);
+    console.log(allowedRoles);
     return <Navigate to="/" replace />;
   }
 
@@ -51,6 +54,11 @@ const App: React.FC = () => {
           <Route path="/profile" element={
             <ProtectedRoute allowedRoles={[UserRole.User]}>
               <ProfilePage/>
+            </ProtectedRoute>
+          }/>
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRoles={[UserRole.Admin]}>
+              <AdminPage/>
             </ProtectedRoute>
           }/>
         </Routes>

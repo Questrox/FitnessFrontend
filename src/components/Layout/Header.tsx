@@ -23,6 +23,7 @@ const Header = () => {
     { name: "Тренировки", path: "/trainings" },
     { name: "Расписание", path: "/schedule" },
     { name: "Наша команда", path: "/team" },
+    { name: "Панель администратора", path: "/admin" },
   ];
 
   const isActive = (path: string) => location.pathname === path;

@@ -36,6 +36,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           flexGrow: 1, // Основной контейнер занимает оставшееся пространство.
           padding: 3, // Отступы внутри основного контейнера.
           marginTop: "64px",
+          minHeight: 500
         }}
       >
         {children}

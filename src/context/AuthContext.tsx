@@ -37,7 +37,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (token) {
       const storedUser = localStorage.getItem("user")
       // Если есть токен, пробуем загрузить информацию о пользователе из локального хранилища.
-      if (storedUser) setUser(JSON.parse(storedUser))
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser)
+        setUserRole(parsedUser.userRole!)
+      }
     }
     setIsLoading(false)
   }, [])
