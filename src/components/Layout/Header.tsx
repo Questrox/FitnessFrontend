@@ -20,7 +20,7 @@ const Header = () => {
   const navItems = [
     { name: "Главная", path: "/" },
     { name: "Абонементы", path: "/memberships" },
-    { name: "Тренировки", path: "/classes" },
+    { name: "Тренировки", path: "/trainings" },
     { name: "Расписание", path: "/schedule" },
     { name: "Наша команда", path: "/team" },
   ];
@@ -31,7 +31,7 @@ const Header = () => {
     <>
     <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
     <AppBar position="sticky" elevation={1} color="default">
-      <Toolbar sx={{ justifyContent: "space-between", minHeight: 80 }}>
+      <Toolbar sx={{ justifyContent: "space-between", minHeight: 80, position: "relative" }}>
         {/* Logo */}
         <Box
           component={RouterLink}
@@ -64,7 +64,7 @@ const Header = () => {
         </Box>
 
         {/* Desktop nav */}
-        <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
+        <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1, position: "absolute", left: "50%", transform: "translateX(-50%)", zIndex: 1, }}>
           {navItems.map((item) => (
             <Button
               key={item.path}
