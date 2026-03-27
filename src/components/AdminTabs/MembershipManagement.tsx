@@ -119,7 +119,7 @@ export function MembershipManagement() {
   };
 
   const handleDelete = async (membership: MembershipTypeDTO) => {
-    if (window.confirm(`Удалить "${membership.name}"?`)) {
+    if (window.confirm(`Вы действительно хотите удалить "${membership.name}"?`)) {
       setIsLoading(true);
       await apiClient.softDeleteMembershipType(membership.id!);
       await fetchTypes();
@@ -144,7 +144,7 @@ export function MembershipManagement() {
       {/* Dialog (вместо Card формы) */}
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
         <DialogTitle>
-          {editingMembership ? "Редактировать абонемент" : "Создать абонемент"}
+          {editingMembership ? "Редактировать тип абонемента" : "Создать тип абонемента"}
         </DialogTitle>
 
         <DialogContent>
@@ -241,7 +241,7 @@ export function MembershipManagement() {
                     </Box>
                   </Box>
 
-                  <Box>
+                  <Box sx={{minWidth: 100}}>
                     <IconButton onClick={() => handleEdit(membershipType)}>
                       <EditIcon />
                     </IconButton>

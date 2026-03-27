@@ -2688,20 +2688,53 @@ export class ApiClient {
     }
 
     /**
-     * @param body (optional) 
+     * @param price (optional) 
+     * @param maxClients (optional) 
+     * @param name (optional) 
+     * @param description (optional) 
+     * @param cashbackPercentage (optional) 
+     * @param duration (optional) 
+     * @param image (optional) 
      * @return OK
      */
-    addTrainingType(body: CreateTrainingTypeDTO | undefined): Promise<TrainingTypeDTO> {
-        let url_ = this.baseUrl + "/api/TrainingType/AddTrainingType";
+    addTrainingType(price: number | undefined, maxClients: number | undefined, name: string | undefined, description: string | undefined, cashbackPercentage: number | undefined, duration: number | undefined, image: FileParameter | undefined): Promise<TrainingTypeDTO> {
+        let url_ = this.baseUrl + "/api/TrainingType/AddTrainingType?";
+        if (price === null)
+            throw new globalThis.Error("The parameter 'price' cannot be null.");
+        else if (price !== undefined)
+            url_ += "Price=" + encodeURIComponent("" + price) + "&";
+        if (maxClients === null)
+            throw new globalThis.Error("The parameter 'maxClients' cannot be null.");
+        else if (maxClients !== undefined)
+            url_ += "MaxClients=" + encodeURIComponent("" + maxClients) + "&";
+        if (name === null)
+            throw new globalThis.Error("The parameter 'name' cannot be null.");
+        else if (name !== undefined)
+            url_ += "Name=" + encodeURIComponent("" + name) + "&";
+        if (description === null)
+            throw new globalThis.Error("The parameter 'description' cannot be null.");
+        else if (description !== undefined)
+            url_ += "Description=" + encodeURIComponent("" + description) + "&";
+        if (cashbackPercentage === null)
+            throw new globalThis.Error("The parameter 'cashbackPercentage' cannot be null.");
+        else if (cashbackPercentage !== undefined)
+            url_ += "CashbackPercentage=" + encodeURIComponent("" + cashbackPercentage) + "&";
+        if (duration === null)
+            throw new globalThis.Error("The parameter 'duration' cannot be null.");
+        else if (duration !== undefined)
+            url_ += "Duration=" + encodeURIComponent("" + duration) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(body);
+        const content_ = new FormData();
+        if (image === null || image === undefined)
+            throw new globalThis.Error("The parameter 'image' cannot be null.");
+        else
+            content_.append("Image", image.data, image.fileName ? image.fileName : "Image");
 
         let options_: RequestInit = {
             body: content_,
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
@@ -2730,23 +2763,76 @@ export class ApiClient {
     }
 
     /**
-     * @param body (optional) 
+     * @param id (optional) 
+     * @param maxClients (optional) 
+     * @param price (optional) 
+     * @param name (optional) 
+     * @param description (optional) 
+     * @param photoPath (optional) 
+     * @param duration (optional) 
+     * @param cashbackPercentage (optional) 
+     * @param trainings (optional) 
+     * @param image (optional) 
      * @return OK
      */
-    updateTrainingType(id: number, body: TrainingTypeDTO | undefined): Promise<TrainingTypeDTO> {
-        let url_ = this.baseUrl + "/api/TrainingType/UpdateTrainingType/{id}";
-        if (id === undefined || id === null)
-            throw new globalThis.Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    updateTrainingType(routeId: number, id: number | undefined, maxClients: number | undefined, price: number | undefined, name: string | undefined, description: string | undefined, photoPath: string | undefined, duration: number | undefined, cashbackPercentage: number | undefined, trainings: TrainingDTO[] | undefined, image: FileParameter | undefined): Promise<TrainingTypeDTO> {
+        let url_ = this.baseUrl + "/api/TrainingType/UpdateTrainingType/{routeId}?";
+        if (routeId === undefined || routeId === null)
+            throw new globalThis.Error("The parameter 'routeId' must be defined.");
+        url_ = url_.replace("{routeId}", encodeURIComponent("" + routeId));
+        if (id === null)
+            throw new globalThis.Error("The parameter 'id' cannot be null.");
+        else if (id !== undefined)
+            url_ += "Id=" + encodeURIComponent("" + id) + "&";
+        if (maxClients === null)
+            throw new globalThis.Error("The parameter 'maxClients' cannot be null.");
+        else if (maxClients !== undefined)
+            url_ += "MaxClients=" + encodeURIComponent("" + maxClients) + "&";
+        if (price === null)
+            throw new globalThis.Error("The parameter 'price' cannot be null.");
+        else if (price !== undefined)
+            url_ += "Price=" + encodeURIComponent("" + price) + "&";
+        if (name === null)
+            throw new globalThis.Error("The parameter 'name' cannot be null.");
+        else if (name !== undefined)
+            url_ += "Name=" + encodeURIComponent("" + name) + "&";
+        if (description === null)
+            throw new globalThis.Error("The parameter 'description' cannot be null.");
+        else if (description !== undefined)
+            url_ += "Description=" + encodeURIComponent("" + description) + "&";
+        if (photoPath === null)
+            throw new globalThis.Error("The parameter 'photoPath' cannot be null.");
+        else if (photoPath !== undefined)
+            url_ += "PhotoPath=" + encodeURIComponent("" + photoPath) + "&";
+        if (duration === null)
+            throw new globalThis.Error("The parameter 'duration' cannot be null.");
+        else if (duration !== undefined)
+            url_ += "Duration=" + encodeURIComponent("" + duration) + "&";
+        if (cashbackPercentage === null)
+            throw new globalThis.Error("The parameter 'cashbackPercentage' cannot be null.");
+        else if (cashbackPercentage !== undefined)
+            url_ += "CashbackPercentage=" + encodeURIComponent("" + cashbackPercentage) + "&";
+        if (trainings === null)
+            throw new globalThis.Error("The parameter 'trainings' cannot be null.");
+        else if (trainings !== undefined)
+            trainings && trainings.forEach((item, index) => {
+                for (const attr in item)
+        			if (item.hasOwnProperty(attr)) {
+        				url_ += "Trainings[" + index + "]." + attr + "=" + encodeURIComponent("" + (item as any)[attr]) + "&";
+        			}
+            });
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(body);
+        const content_ = new FormData();
+        if (image === null || image === undefined)
+            throw new globalThis.Error("The parameter 'image' cannot be null.");
+        else
+            content_.append("Image", image.data, image.fileName ? image.fileName : "Image");
 
         let options_: RequestInit = {
             body: content_,
             method: "PUT",
             headers: {
-                "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
@@ -3531,58 +3617,6 @@ export interface ICreateTrainingReservationDTO {
     trainingId?: number;
 }
 
-export class CreateTrainingTypeDTO implements ICreateTrainingTypeDTO {
-    price?: number;
-    maxClients?: number;
-    name?: string | undefined;
-    description?: string | undefined;
-    cashbackPercentage?: number;
-
-    constructor(data?: ICreateTrainingTypeDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.price = _data["price"];
-            this.maxClients = _data["maxClients"];
-            this.name = _data["name"];
-            this.description = _data["description"];
-            this.cashbackPercentage = _data["cashbackPercentage"];
-        }
-    }
-
-    static fromJS(data: any): CreateTrainingTypeDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new CreateTrainingTypeDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["price"] = this.price;
-        data["maxClients"] = this.maxClients;
-        data["name"] = this.name;
-        data["description"] = this.description;
-        data["cashbackPercentage"] = this.cashbackPercentage;
-        return data;
-    }
-}
-
-export interface ICreateTrainingTypeDTO {
-    price?: number;
-    maxClients?: number;
-    name?: string | undefined;
-    description?: string | undefined;
-    cashbackPercentage?: number;
-}
-
 export enum DayOfWeek {
     _0 = 0,
     _1 = 1,
@@ -4187,6 +4221,9 @@ export class TrainingTypeDTO implements ITrainingTypeDTO {
     price?: number;
     name?: string | undefined;
     description?: string | undefined;
+    photoPath?: string | undefined;
+    image?: string | undefined;
+    duration?: number;
     cashbackPercentage?: number;
     trainings?: TrainingDTO[] | undefined;
 
@@ -4206,6 +4243,9 @@ export class TrainingTypeDTO implements ITrainingTypeDTO {
             this.price = _data["price"];
             this.name = _data["name"];
             this.description = _data["description"];
+            this.photoPath = _data["photoPath"];
+            this.image = _data["image"];
+            this.duration = _data["duration"];
             this.cashbackPercentage = _data["cashbackPercentage"];
             if (Array.isArray(_data["trainings"])) {
                 this.trainings = [] as any;
@@ -4229,6 +4269,9 @@ export class TrainingTypeDTO implements ITrainingTypeDTO {
         data["price"] = this.price;
         data["name"] = this.name;
         data["description"] = this.description;
+        data["photoPath"] = this.photoPath;
+        data["image"] = this.image;
+        data["duration"] = this.duration;
         data["cashbackPercentage"] = this.cashbackPercentage;
         if (Array.isArray(this.trainings)) {
             data["trainings"] = [];
@@ -4245,6 +4288,9 @@ export interface ITrainingTypeDTO {
     price?: number;
     name?: string | undefined;
     description?: string | undefined;
+    photoPath?: string | undefined;
+    image?: string | undefined;
+    duration?: number;
     cashbackPercentage?: number;
     trainings?: TrainingDTO[] | undefined;
 }
@@ -4351,6 +4397,11 @@ export interface IValidateResult {
     message?: string | undefined;
     userName?: string | undefined;
     userRole?: string | undefined;
+}
+
+export interface FileParameter {
+    data: any;
+    fileName: string;
 }
 
 export class ApiException extends Error {

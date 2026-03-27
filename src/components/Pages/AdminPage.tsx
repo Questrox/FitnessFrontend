@@ -13,6 +13,7 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import PeopleIcon from "@mui/icons-material/People";
 import { MembershipManagement } from "../AdminTabs/MembershipManagement";
+import { TrainingTypeManagement } from "../AdminTabs/TrainingTypeManagements";
 
 type TabType = "memberships" | "trainingTypes" | "clients";
 
@@ -72,7 +73,7 @@ const AdminPage = () => {
 
         {/* Content */}
         {activeTab === "memberships" && <MembershipManagement />}
-        {activeTab === "trainingTypes" && <Typography>Здесь должны быть типы тренировок</Typography>}
+        {activeTab === "trainingTypes" && <TrainingTypeManagement/>}
         {activeTab === "clients" && <Typography>Здесь должны быть клиенты</Typography>}
       </Container>
     </Box>
