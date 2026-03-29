@@ -29,6 +29,7 @@ export function MembershipManagement() {
   const [editingMembership, setEditingMembership] = useState<MembershipTypeDTO | null>(null);
   const [membershipTypes, setMembershipTypes] = useState<MembershipTypeDTO[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetchTypes();
@@ -76,45 +77,54 @@ export function MembershipManagement() {
     setOpen(true);
   };
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {setOpen(false); setError("");}
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    //alert(`${action}: ${JSON.stringify(formData, null, 2)}`);
+
+    const type = new MembershipTypeDTO();
+    type.name = formData.name;
+    type.description = formData.description;
+    type.price = parseFloat(formData.price);
+    type.cashbackPercentage = parseInt(formData.cashbackPercentage);
+    type.duration = parseInt(formData.duration);
+    if (type.price <= 0)
+    {
+      setError("Цена должна быть положительной");
+      return;
+    }
+    if (type.cashbackPercentage < 0 || type.cashbackPercentage > 100)
+    {
+      setError("Процент кэшбека должен быть в пределах от 0 до 100");
+      return;
+    }
+    if (type.duration <= 0)
+    {
+      setError("Продолжительность в месяцах должна быть положительной");
+      return;
+    }
     if (editingMembership)
     {
-        const updatedType = new MembershipTypeDTO();
-        updatedType.id = editingMembership.id;
-        updatedType.name = formData.name;
-        updatedType.description = formData.description;
-        updatedType.price = parseFloat(formData.price);
-        updatedType.cashbackPercentage = parseInt(formData.cashbackPercentage);
-        updatedType.duration = parseInt(formData.duration);
-        try {
-            const updated = await apiClient.updateMembershipType(editingMembership.id!, updatedType);
-            //setMembershipTypes((prev) => prev.map((rt) => (rt.id === updated.id ? updated : rt)))
-            fetchTypes();
-            handleClose();
-        } catch (error) {
-            alert(error)
-        }
+      type.id = editingMembership.id;
+      try {
+          const updated = await apiClient.updateMembershipType(editingMembership.id!, type);
+          //setMembershipTypes((prev) => prev.map((rt) => (rt.id === updated.id ? updated : rt)))
+          fetchTypes();
+          handleClose();
+      } catch (error: any) {
+          setError(error.message);
+      }
     }
     else
     {
-        const newType = new CreateMembershipTypeDTO();
-        newType.name = formData.name;
-        newType.description = formData.description;
-        newType.price = parseFloat(formData.price);
-        newType.cashbackPercentage = parseInt(formData.cashbackPercentage);
-        newType.duration = parseInt(formData.duration);
-        try {
-            const created = await apiClient.addMembershipType(newType);
-            //setMembershipTypes(prev => [...prev, created])
-            fetchTypes();
-            handleClose();
-        } catch (error) {
-            alert(error)
-        }
+      try {
+          const created = await apiClient.addMembershipType(type);
+          //setMembershipTypes(prev => [...prev, created])
+          fetchTypes();
+          handleClose();
+      } catch (error: any) {
+          setError(error.message);
+      }
     }
   };
 
@@ -211,6 +221,7 @@ export function MembershipManagement() {
                 />
               </GridLegacy>
             </GridLegacy>
+          {error && <Typography color="error" marginTop={1}>{error}</Typography>}
           </Box>
         </DialogContent>
 

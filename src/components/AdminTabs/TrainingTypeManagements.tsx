@@ -13,6 +13,8 @@ import {
   CircularProgress,
   DialogTitle,
   Dialog,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -28,6 +30,7 @@ export function TrainingTypeManagement() {
   const [trainingTypes, setTrainingTypes] = useState<TrainingTypeDTO[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [image, setImage] = useState<File | undefined>(undefined);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -84,6 +87,7 @@ export function TrainingTypeManagement() {
     setOpen(false);
     setEditingTrainingType(null);
     setImage(undefined);
+    setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,50 +95,62 @@ export function TrainingTypeManagement() {
     if (!formData.photoPath) {
       alert("Пожалуйста, загрузите изображение");
       return;
-    } 
+    }
+    const data = {
+      id: editingTrainingType?.id,
+      name: formData.name,
+      description: formData.description,
+      price: parseFloat(formData.price),
+      cashbackPercentage: parseInt(formData.cashbackPercentage),
+      duration: parseInt(formData.duration),
+      maxClients: parseInt(formData.maxClients),
+      photoPath: formData.photoPath,
+      trainings: editingTrainingType?.trainings
+    }
+    if (data.price < 0)
+    {
+      setError("Цена должна быть неотрицательной");
+      return;
+    }
+    if(data.cashbackPercentage < 0 || data.cashbackPercentage > 100)
+    {
+      setError("Процент кэшбека должен быть в пределах от 0 до 100");
+      return;
+    }
+    if (data.duration <= 0)
+    {
+      setError("Продолжительность должна быть положительной");
+      return;
+    }
+    if (data.maxClients <= 0)
+    {
+      setError("Количество клиентов должно быть положительным");
+      return;
+    }
     if (editingTrainingType)
     {
-      const data = {
-        id: editingTrainingType.id!,
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price),
-        cashbackPercentage: parseInt(formData.cashbackPercentage),
-        duration: parseInt(formData.duration),
-        maxClients: parseInt(formData.maxClients),
-        photoPath: formData.photoPath,
-        trainings: editingTrainingType.trainings
-      }
       const fileParam = image ? { data: image, fileName: image.name } : { data: new Blob(), fileName: "" }; 
       try {
-        const updated = await apiClient.updateTrainingType(data.id, data.id, data.maxClients, data.price, data.name, data.description, 
+        const updated = await apiClient.updateTrainingType(data.id!, data.id, data.maxClients, data.price, data.name, data.description, 
           data.photoPath, data.duration, data.cashbackPercentage, data.trainings, fileParam);
         fetchTypes();
         handleClose();
-      } catch (error) {
-        alert(error)
+      } catch (error: any) {
+        setError(error.message);
       }
     }
     else
     {
-      const data = {
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price),
-        cashbackPercentage: parseInt(formData.cashbackPercentage),
-        duration: parseInt(formData.duration),
-        maxClients: parseInt(formData.maxClients)
-      }
+      console.log("Создаем")
       const fileParam = image ? { data: image, fileName: image.name } : { data: new Blob(), fileName: "" }; 
       try {
         const created = await apiClient.addTrainingType(data.price, data.maxClients, data.name, data.description, data.cashbackPercentage, data.duration, fileParam);
         fetchTypes();
         handleClose();
-      } catch (error) {
-        alert(error)
+      } catch (error: any) {
+        setError(error.message);
       }
     }
-    handleClose();
   };
 
   const handleDelete = async (trainingType: TrainingTypeDTO) => {
@@ -176,8 +192,8 @@ export function TrainingTypeManagement() {
          <DialogTitle>
           {editingTrainingType ? "Редактировать тип тренировки" : "Создать тип тренировки"}
         </DialogTitle>
-        <CardContent>
-          <Box component="form" onSubmit={handleSubmit}>
+        <DialogContent>
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }} id="trainingTypeForm">
             <GridLegacy container spacing={3}>
               <GridLegacy item xs={12} md={6}>
                 <TextField
@@ -264,7 +280,9 @@ export function TrainingTypeManagement() {
                   }
                   required
                 />
+                {error && <Typography color="error" marginTop={1}>{error}</Typography>}
               </GridLegacy>
+              
 
               <GridLegacy item xs={12}>
                 <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
@@ -295,16 +313,16 @@ export function TrainingTypeManagement() {
                   </Button>
                 </Box>
               </GridLegacy>
-
-              <GridLegacy item xs={12} sx={{ display: "flex", justifyContent: "flex-end", gap: 2 }}>
-                <Button onClick={handleClose}>Отмена</Button>
-                <Button type="submit" variant="contained">
-                  {editingTrainingType ? "Сохранить" : "Создать"}
-                </Button>
-              </GridLegacy>
             </GridLegacy>
           </Box>
-        </CardContent>
+        </DialogContent>
+        
+        <DialogActions>
+          <Button onClick={handleClose}>Отмена</Button>
+          <Button type="submit" variant="contained" onSubmit={handleSubmit} form="trainingTypeForm">
+            {editingTrainingType ? "Сохранить" : "Создать"}
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* List */}
