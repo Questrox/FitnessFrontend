@@ -68,12 +68,15 @@ const App: React.FC = () => {
             }
           >
             <Route index element={<Navigate to="memberships" replace />} />
-
             <Route path="memberships" element={<MembershipManagement />} />
             <Route path="training-types" element={<TrainingTypeManagement />} />
-
             <Route path="clients/*" element={<ClientManagement/>} />
           </Route>
+          <Route path="profiles/:id" element={
+            <ProtectedRoute allowedRoles={[UserRole.Admin]}>
+              <ProfilePage/>
+            </ProtectedRoute>
+            }/>
         </Routes>
       </Layout>
     </AuthProvider>

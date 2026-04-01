@@ -21,8 +21,10 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import PersonIcon from "@mui/icons-material/Person";
 import { ClientDTO, MembershipDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
+import { useNavigate } from "react-router-dom";
 
 export function ClientManagement() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -164,7 +166,7 @@ export function ClientManagement() {
                     fullWidth
                     variant="contained"
                     endIcon={<ChevronRightIcon />}
-                    onClick={() => console.log("open profile")}
+                    onClick={() => navigate("/profiles/" + client.id)}
                   >
                     Перейти в профиль
                   </Button>
