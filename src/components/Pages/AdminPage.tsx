@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Box,
   Container,
@@ -12,19 +11,32 @@ import ShieldIcon from "@mui/icons-material/Shield";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import PeopleIcon from "@mui/icons-material/People";
-import { MembershipManagement } from "../AdminTabs/MembershipManagement";
-import { TrainingTypeManagement } from "../AdminTabs/TrainingTypeManagements";
-
-type TabType = "memberships" | "trainingTypes" | "clients";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 const AdminPage = () => {
-  const [activeTab, setActiveTab] = useState<TabType>("memberships");
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const tabs = [
-    { id: "memberships", label: "Абонементы", icon: <CreditCardIcon /> },
-    { id: "trainingTypes", label: "Тренировки", icon: <FitnessCenterIcon /> },
-    { id: "clients", label: "Клиенты", icon: <PeopleIcon /> },
-  ];
+  // определяем активный таб по URL
+  const currentTab = (() => {
+    if (location.pathname.includes("/training-types")) return "trainingTypes";
+    if (location.pathname.includes("/clients")) return "clients";
+    return "memberships";
+  })();
+
+  const handleChange = (_: any, value: string) => {
+    switch (value) {
+      case "memberships":
+        navigate("/admin/memberships");
+        break;
+      case "trainingTypes":
+        navigate("/admin/training-types");
+        break;
+      case "clients":
+        navigate("/admin/clients");
+        break;
+    }
+  };
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: 6 }}>
@@ -55,26 +67,18 @@ const AdminPage = () => {
 
         {/* Tabs */}
         <Tabs
-          value={activeTab}
-          onChange={(_, value) => setActiveTab(value)}
+          value={currentTab}
+          onChange={handleChange}
           sx={{ mb: 3 }}
           variant="scrollable"
         >
-          {tabs.map((tab) => (
-            <Tab
-              key={tab.id}
-              value={tab.id}
-              icon={tab.icon}
-              iconPosition="start"
-              label={tab.label}
-            />
-          ))}
+          <Tab value="memberships" icon={<CreditCardIcon />} iconPosition="start" label="Абонементы" />
+          <Tab value="trainingTypes" icon={<FitnessCenterIcon />} iconPosition="start" label="Тренировки" />
+          <Tab value="clients" icon={<PeopleIcon />} iconPosition="start" label="Клиенты" />
         </Tabs>
 
-        {/* Content */}
-        {activeTab === "memberships" && <MembershipManagement />}
-        {activeTab === "trainingTypes" && <TrainingTypeManagement/>}
-        {activeTab === "clients" && <Typography>Здесь должны быть клиенты</Typography>}
+        {/* Контент теперь через роутер */}
+        <Outlet />
       </Container>
     </Box>
   );

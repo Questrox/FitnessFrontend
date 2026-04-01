@@ -68,8 +68,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   const logout = async () => {
-
-    await apiClient.logout();
+    try {
+      await apiClient.logout();
+    } catch (error) {console.error(error);}
     localStorage.removeItem(tokenKey);
     // Удаляем токен из хранилища.
 

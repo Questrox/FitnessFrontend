@@ -55,6 +55,22 @@ export function TrainingTypeManagement() {
     setIsLoading(false);
   }
 
+  const getImageSrc = (path: string) => {
+  if (!path) return "";
+
+  // если это blob (локальный preview)
+  if (path.startsWith("blob:")) {
+    return path;
+  }
+
+  // если это абсолютный URL (http)
+  if (path.startsWith("http")) {
+    return path;
+  }
+  // иначе — это путь с сервера
+  return `/${path}`;
+};
+
   const handleEdit = (trainingType: TrainingTypeDTO) => {
     setEditingTrainingType(trainingType);
     setFormData({
@@ -289,7 +305,7 @@ export function TrainingTypeManagement() {
                   {formData.photoPath && (
                     <Box
                       component="img"
-                      src={formData.photoPath}
+                      src={getImageSrc(formData.photoPath)}
                       sx={{
                         width: 100,
                         height: 100,
@@ -335,7 +351,7 @@ export function TrainingTypeManagement() {
                 <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
                   <Box
                     component="img"
-                    src={trainingType.photoPath}
+                    src={getImageSrc(trainingType.photoPath!)}
                     sx={{
                       width: 96,
                       height: 96,

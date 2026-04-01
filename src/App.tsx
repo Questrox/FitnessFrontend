@@ -2,7 +2,7 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 import { useAuth, AuthProvider } from './context/AuthContext';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, Typography } from '@mui/material';
 import { Navigate, Routes, Route } from 'react-router-dom';
 import Home from './components/Pages/Home';
 import Layout from './components/Layout/Layout';
@@ -12,6 +12,9 @@ import SchedulePage from './components/Pages/SchedulePage';
 import TeamPage from './components/Pages/TeamPage';
 import ProfilePage from './components/Pages/ProfilePage';
 import AdminPage from './components/Pages/AdminPage';
+import { MembershipManagement } from './components/AdminTabs/MembershipManagement';
+import { TrainingTypeManagement } from './components/AdminTabs/TrainingTypeManagements';
+import { ClientManagement } from './components/AdminTabs/ClientManagement';
 
 enum UserRole {
   Admin = "Admin",
@@ -56,11 +59,21 @@ const App: React.FC = () => {
               <ProfilePage/>
             </ProtectedRoute>
           }/>
-          <Route path="/admin" element={
-            <ProtectedRoute allowedRoles={[UserRole.Admin]}>
-              <AdminPage/>
-            </ProtectedRoute>
-          }/>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={[UserRole.Admin]}>
+                <AdminPage />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="memberships" replace />} />
+
+            <Route path="memberships" element={<MembershipManagement />} />
+            <Route path="training-types" element={<TrainingTypeManagement />} />
+
+            <Route path="clients/*" element={<ClientManagement/>} />
+          </Route>
         </Routes>
       </Layout>
     </AuthProvider>

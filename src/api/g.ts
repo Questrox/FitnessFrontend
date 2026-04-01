@@ -212,15 +212,15 @@ export class ApiClient {
     }
 
     /**
-     * @param phone (optional) 
+     * @param filter (optional) 
      * @return OK
      */
-    getSortedClientsByPhone(phone: string | undefined): Promise<ClientDTO[]> {
-        let url_ = this.baseUrl + "/api/Client/GetSortedClientsByPhone?";
-        if (phone === null)
-            throw new globalThis.Error("The parameter 'phone' cannot be null.");
-        else if (phone !== undefined)
-            url_ += "phone=" + encodeURIComponent("" + phone) + "&";
+    getFilteredClients(filter: string | undefined): Promise<ClientDTO[]> {
+        let url_ = this.baseUrl + "/api/Client/GetFilteredClients?";
+        if (filter === null)
+            throw new globalThis.Error("The parameter 'filter' cannot be null.");
+        else if (filter !== undefined)
+            url_ += "filter=" + encodeURIComponent("" + filter) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -231,11 +231,11 @@ export class ApiClient {
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetSortedClientsByPhone(_response);
+            return this.processGetFilteredClients(_response);
         });
     }
 
-    protected processGetSortedClientsByPhone(response: Response): Promise<ClientDTO[]> {
+    protected processGetFilteredClients(response: Response): Promise<ClientDTO[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -4301,8 +4301,6 @@ export class UserDTO implements IUserDTO {
     userName?: string | undefined;
     phoneNumber?: string | undefined;
     fullName?: string | undefined;
-    client?: ClientDTO;
-    coach?: CoachDTO;
 
     constructor(data?: IUserDTO) {
         if (data) {
@@ -4320,8 +4318,6 @@ export class UserDTO implements IUserDTO {
             this.userName = _data["userName"];
             this.phoneNumber = _data["phoneNumber"];
             this.fullName = _data["fullName"];
-            this.client = _data["client"] ? ClientDTO.fromJS(_data["client"]) : undefined as any;
-            this.coach = _data["coach"] ? CoachDTO.fromJS(_data["coach"]) : undefined as any;
         }
     }
 
@@ -4339,8 +4335,6 @@ export class UserDTO implements IUserDTO {
         data["userName"] = this.userName;
         data["phoneNumber"] = this.phoneNumber;
         data["fullName"] = this.fullName;
-        data["client"] = this.client ? this.client.toJSON() : undefined as any;
-        data["coach"] = this.coach ? this.coach.toJSON() : undefined as any;
         return data;
     }
 }
@@ -4351,8 +4345,6 @@ export interface IUserDTO {
     userName?: string | undefined;
     phoneNumber?: string | undefined;
     fullName?: string | undefined;
-    client?: ClientDTO;
-    coach?: CoachDTO;
 }
 
 export class ValidateResult implements IValidateResult {

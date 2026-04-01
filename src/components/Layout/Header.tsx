@@ -73,7 +73,7 @@ const Header = () => {
               to={item.path}
               variant={isActive(item.path) ? "contained" : "text"}
               color={isActive(item.path) ? "primary" : "inherit"}
-              sx={{ borderRadius: 2, textTransform: "none", fontWeight: 500 }}
+              sx={{ borderRadius: 2, textTransform: "none", fontWeight: 500, textAlign: "center" }}
             >
               {item.name}
             </Button>
