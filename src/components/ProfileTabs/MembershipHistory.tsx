@@ -18,53 +18,13 @@ import { MembershipDTO } from "../../api/g";
 
 interface MembershipHistoryProps {
   memberships: MembershipDTO[];
-  hideCancelled: boolean;
-  setHideCancelled: (value: boolean) => void;
-  hideExpired: boolean;
-  setHideExpired: (value: boolean) => void;
 }
 
 export function MembershipHistory({
   memberships,
-  hideCancelled,
-  setHideCancelled,
-  hideExpired,
-  setHideExpired,
 }: MembershipHistoryProps) {
   return (
     <Box>
-      {/* Filters */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Stack direction="row" alignItems="center" spacing={1} mb={2}>
-            <FilterListIcon color="action" />
-            <Typography variant="h6">Фильтры</Typography>
-          </Stack>
-
-          <Stack direction="row" spacing={2} flexWrap="wrap">
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={hideCancelled}
-                  onChange={(e) => setHideCancelled(e.target.checked)}
-                />
-              }
-              label="Скрыть отменённые"
-            />
-
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={hideExpired}
-                  onChange={(e) => setHideExpired(e.target.checked)}
-                />
-              }
-              label="Скрыть истёкшие"
-            />
-          </Stack>
-        </CardContent>
-      </Card>
-
       {/* List */}
       <Stack spacing={2}>
         {memberships.length === 0 ? (
@@ -72,7 +32,7 @@ export function MembershipHistory({
             <CardContent sx={{ textAlign: "center", py: 6 }}>
               <HistoryIcon sx={{ fontSize: 40, color: "text.disabled", mb: 2 }} />
               <Typography color="text.secondary">
-                Нет абонементов с текущими фильтрами
+                Пока что абонементов нет
               </Typography>
             </CardContent>
           </Card>

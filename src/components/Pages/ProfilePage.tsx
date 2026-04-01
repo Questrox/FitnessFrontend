@@ -19,6 +19,7 @@ import { apiClient } from "../../api/apiClient";
 import { useParams } from "react-router-dom";
 import { ProfileInfo } from "../ProfileTabs/ProfileInfo";
 import { MembershipHistory } from "../ProfileTabs/MembershipHistory";
+import { ReservationHistory } from "../ProfileTabs/ReservationHistory";
 
 type TabType = "profile" | "memberships" | "classes";
 
@@ -28,16 +29,14 @@ const ProfilePage = () => {
   
   const [client, setClient] = useState<ClientDTO | undefined>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [hideCancelledMemberships, setHideCancelledMemberships] = useState(false);
-  const [hideExpiredMemberships, setHideExpiredMemberships] = useState(false);
   const [hideCancelledClasses, setHideCancelledClasses] = useState(false);
-  const [hideCompletedClasses, setHideCompletedClasses] = useState(false);
-  const [membership, setMembership] = useState<MembershipDTO | undefined>();
+  const [hidePaidClasses, setHidePaidClasses] = useState(false);
+  const [currentMembership, setCurrentMembership] = useState<MembershipDTO | undefined>();
   const [daysUntilExpiration, setDaysUntilExpiration] = useState<number>(0);
 
   useEffect(() => {
     fetchClient();
-  }, [id])
+  }, [])
       
   const fetchClient = async () => {
     const currDate = new Date();
@@ -51,7 +50,7 @@ const ProfilePage = () => {
       }
       setClient(data);
       const currMembership = data!.memberships!.find((m) => m.startDate! <= currDate && m.endDate! >= currDate);
-      setMembership(currMembership);
+      setCurrentMembership(currMembership);
       if (currMembership) {
         const diffDays = Math.floor(Math.abs(currMembership!.endDate!.getTime() - currDate.getTime()) / (1000 * 60 * 60 * 24));
         setDaysUntilExpiration(diffDays);
@@ -61,30 +60,11 @@ const ProfilePage = () => {
     }
     setIsLoading(false);
   }
-//   const currentMembership = memberships.find(m => m.id === userProfile.currentMembership);
-
-//   const daysUntilExpiration = Math.ceil(
-//     (new Date(userProfile.membershipExpiration).getTime() - new Date(2026, 2, 21).getTime()) /
-//     (1000 * 60 * 60 * 24)
-//   );
-
-//   const filteredMemberships = purchasedMemberships.filter((pm) => {
-//     if (hideCancelledMemberships && pm.status === "cancelled") return false;
-//     if (hideExpiredMemberships && pm.status === "expired") return false;
-//     return true;
-//   });
-
-//   const filteredClasses = bookedClasses.filter((bc) => {
-//     if (hideCancelledClasses && bc.status === "cancelled") return false;
-//     if (hideCompletedClasses && bc.status === "completed") return false;
-//     return true;
-//   });
-
-//   const getMembershipById = (id: string) => memberships.find(m => m.id === id);
-//   const getTrainingById = (id: string) => trainings.find(t => t.id === id);
-//   const getTrainingTypeById = (id: string) => trainingTypes.find(tt => tt.id === id);
-//   const getCoachById = (id: string) => coaches.find(c => c.id === id);
-
+  const filteredReservations = client?.trainingReservations!.filter((tr) => {
+    if (hideCancelledClasses && tr.reservationStatus!.name === "Отменена") return false;
+    if (hidePaidClasses && tr.reservationStatus!.name === "Оплачена") return false;
+    return true;
+  });
   if (isLoading)
     return <CircularProgress/>;
 
@@ -120,7 +100,7 @@ const ProfilePage = () => {
               </Box>
 
               {/* Expiration */}
-              {membership && 
+              {currentMembership && 
               <Box>
                 <Typography variant="body2" color="text.secondary">
                   Текущий абонемент истекает через
@@ -142,20 +122,17 @@ const ProfilePage = () => {
         >
           <Tab value="profile" icon={<PersonIcon />} iconPosition="start" label="Профиль" />
           <Tab value="memberships" icon={<CreditCardIcon />} iconPosition="start" label="Абонементы" />
-          <Tab value="classes" icon={<FitnessCenterIcon />} iconPosition="start" label="Тренировки" />
+          <Tab value="classes" icon={<FitnessCenterIcon />} iconPosition="start" label="Записи" />
         </Tabs>
 
         {/* Content */}
-        {activeTab === "profile" && <ProfileInfo client={client} membership={membership} />}
-        {activeTab === "memberships" && <MembershipHistory memberships={client.memberships!} 
-                                                           hideCancelled={hideCancelledMemberships} 
-                                                           setHideCancelled={setHideCancelledMemberships}
-                                                           hideExpired={hideExpiredMemberships}
-                                                           setHideExpired={setHideExpiredMemberships}
-         />}
-        {activeTab === "classes" && (
-            <Typography>Я вкладка с записями!</Typography>
-        )}
+        {activeTab === "profile" && <ProfileInfo client={client} membership={currentMembership} />}
+        {activeTab === "memberships" && <MembershipHistory memberships={client.memberships!} />}
+        {activeTab === "classes" && <ReservationHistory reservations={filteredReservations!} 
+                                                        hideCancelled={hideCancelledClasses} 
+                                                        setHideCancelled={setHideCancelledClasses}
+                                                        hidePaid={hidePaidClasses}
+                                                        setHidePaid={setHidePaidClasses} />}
       </Container>
     </Box>
   );
