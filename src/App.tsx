@@ -1,6 +1,5 @@
 import React from 'react';
 import logo from './logo.svg';
-import './App.css';
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { CircularProgress, Typography } from '@mui/material';
 import { Navigate, Routes, Route } from 'react-router-dom';
@@ -15,6 +14,9 @@ import AdminPage from './components/Pages/AdminPage';
 import { MembershipManagement } from './components/AdminTabs/MembershipManagement';
 import { TrainingTypeManagement } from './components/AdminTabs/TrainingTypeManagements';
 import { ClientManagement } from './components/AdminTabs/ClientManagement';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import "dayjs/locale/ru";
 
 enum UserRole {
   Admin = "Admin",
@@ -47,38 +49,40 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement, allowedRoles?: st
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home/>}/>
-          <Route path="/memberships" element={<MembershipsPage/>}/>
-          <Route path="/trainings" element={<TrainingsPage/>}/>
-          <Route path="/schedule" element={<SchedulePage/>}/>
-          <Route path="/team" element={<TeamPage/>}/>
-          <Route path="/profile" element={
-            <ProtectedRoute allowedRoles={[UserRole.User]}>
-              <ProfilePage/>
-            </ProtectedRoute>
-          }/>
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute allowedRoles={[UserRole.Admin]}>
-                <AdminPage />
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Home/>}/>
+            <Route path="/memberships" element={<MembershipsPage/>}/>
+            <Route path="/trainings" element={<TrainingsPage/>}/>
+            <Route path="/schedule" element={<SchedulePage/>}/>
+            <Route path="/team" element={<TeamPage/>}/>
+            <Route path="/profile" element={
+              <ProtectedRoute allowedRoles={[UserRole.User]}>
+                <ProfilePage/>
               </ProtectedRoute>
-            }
-          >
-            <Route index element={<Navigate to="memberships" replace />} />
-            <Route path="memberships" element={<MembershipManagement />} />
-            <Route path="training-types" element={<TrainingTypeManagement />} />
-            <Route path="clients/*" element={<ClientManagement/>} />
-          </Route>
-          <Route path="profiles/:id" element={
-            <ProtectedRoute allowedRoles={[UserRole.Admin]}>
-              <ProfilePage/>
-            </ProtectedRoute>
             }/>
-        </Routes>
-      </Layout>
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={[UserRole.Admin]}>
+                  <AdminPage />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="memberships" replace />} />
+              <Route path="memberships" element={<MembershipManagement />} />
+              <Route path="training-types" element={<TrainingTypeManagement />} />
+              <Route path="clients/*" element={<ClientManagement/>} />
+            </Route>
+            <Route path="profiles/:id" element={
+              <ProtectedRoute allowedRoles={[UserRole.Admin]}>
+                <ProfilePage/>
+              </ProtectedRoute>
+              }/>
+          </Routes>
+        </Layout>
+      </LocalizationProvider>
     </AuthProvider>
   );
 }

@@ -43,7 +43,16 @@ export function ProfileInfo({ client }: Props) {
 
           <CardContent>
             <Stack spacing={3}>
+              {/* Бонусы */}
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  Количество бонусов
+                </Typography>
 
+                <Typography fontWeight={600} sx={{ mt: 0.5 }}>
+                  {client.bonuses}
+                </Typography>
+              </Box>
               {/* Имя */}
               <Box>
                 <Typography variant="caption" color="text.secondary">
@@ -162,7 +171,6 @@ export function ProfileInfo({ client }: Props) {
                   </Typography>
                 </Box>
               </Box> */}
-
             </Stack>
           </CardContent>
         </Card>

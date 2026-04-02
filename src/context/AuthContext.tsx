@@ -41,6 +41,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser)
         setUserRole(parsedUser.userRole!)
+
+        try {
+          apiClient.validate();
+        } catch (error) {
+          localStorage.removeItem(tokenKey);
+          localStorage.removeItem("user")
+          setUser(null)
+          setUserRole("")
+        }
       }
     }
     setIsLoading(false)

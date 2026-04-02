@@ -105,7 +105,7 @@ export function ReservationHistory({
                   sx={{ fontSize: 40, color: "text.disabled", mb: 2 }}
                 />
                 <Typography color="text.secondary">
-                  Нет тренировок с текущими фильтрами
+                  Нет записей на тренировки с текущими фильтрами
                 </Typography>
               </CardContent>
             </Card>

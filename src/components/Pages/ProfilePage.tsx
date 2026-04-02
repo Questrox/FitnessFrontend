@@ -9,17 +9,19 @@ import {
   Tab,
   Avatar,
   Chip,
-  CircularProgress
+  CircularProgress,
+  Button
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
-import { ClientDTO, MembershipDTO } from "../../api/g";
+import { ClientDTO, MembershipDTO, MembershipTypeDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
 import { useParams } from "react-router-dom";
 import { ProfileInfo } from "../ProfileTabs/ProfileInfo";
 import { MembershipHistory } from "../ProfileTabs/MembershipHistory";
 import { ReservationHistory } from "../ProfileTabs/ReservationHistory";
+import { CreateMembershipDialog } from "../ProfileTabs/CreateMembershipDialog";
 
 type TabType = "profile" | "memberships" | "classes";
 
@@ -33,6 +35,9 @@ const ProfilePage = () => {
   const [hidePaidClasses, setHidePaidClasses] = useState(false);
   const [currentMembership, setCurrentMembership] = useState<MembershipDTO | undefined>();
   const [daysUntilExpiration, setDaysUntilExpiration] = useState<number>(0);
+  const [openMembershipDialog, setOpenMembershipDialog] = useState(false);
+  const [membershipTypes, setMembershipTypes] = useState<MembershipTypeDTO[]>([]);
+  const [membershipDialogError, setMembershipDialogError] = useState<string | null>("");
 
   useEffect(() => {
     fetchClient();
@@ -58,13 +63,34 @@ const ProfilePage = () => {
     } catch (error) {
       console.error("Ошибка при загрузке клиента:", error)
     }
+
+    if (id)
+    {
+      try {
+        const types = await apiClient.getMembershipTypes();
+        setMembershipTypes(types || []);
+      } catch (error) {
+        console.error("Ошибка при загрузке типов абонементов", error);
+      }
+    }
+
     setIsLoading(false);
   }
+
   const filteredReservations = client?.trainingReservations!.filter((tr) => {
     if (hideCancelledClasses && tr.reservationStatus!.name === "Отменена") return false;
     if (hidePaidClasses && tr.reservationStatus!.name === "Оплачена") return false;
     return true;
   });
+
+  const handleGenerateCredentials = () => {
+    alert("Генерация данных для входа будет реализована здесь");
+  };
+
+  const handleCreateMembership = () => {
+    setOpenMembershipDialog(true)
+  };
+
   if (isLoading)
     return <CircularProgress/>;
 
@@ -101,18 +127,50 @@ const ProfilePage = () => {
 
               {/* Expiration */}
               {currentMembership && 
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  Текущий абонемент истекает через
-                </Typography>
-                <Typography variant="h5" fontWeight={700} color="primary">
-                  {daysUntilExpiration} дн.
-                </Typography>
-              </Box>
-            }
+                <Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Текущий абонемент истекает через
+                  </Typography>
+                  <Typography variant="h5" fontWeight={700} color="primary">
+                    {daysUntilExpiration} дн.
+                  </Typography>
+                </Box>
+              }
             </Box>
           </CardContent>
         </Card>
+
+        {/* Actions */}
+        {id && <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            mb: 3,
+            flexWrap: "wrap",
+          }}
+        >
+          <Button
+            variant="contained"
+            onClick={handleGenerateCredentials}
+          >
+            Сгенерировать данные для входа
+          </Button>
+
+          <Button
+            variant="outlined"
+            onClick={handleCreateMembership}
+          >
+            Оформить абонемент
+          </Button>
+        </Box>}
+        <CreateMembershipDialog
+          open={openMembershipDialog}
+          onClose={() => {setOpenMembershipDialog(false); setMembershipDialogError("");}}
+          membershipTypes={membershipTypes}
+          selectedClient={client}
+          error={membershipDialogError}
+          setError={setMembershipDialogError}
+        />
 
         {/* Tabs */}
         <Tabs

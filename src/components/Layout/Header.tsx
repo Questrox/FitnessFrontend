@@ -13,7 +13,7 @@ const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const [loginOpen, setLoginOpen] = useState(false);
-  const { user, logout } = useAuth()
+  const { user, logout, userRole } = useAuth()
   const theme = useTheme()
   const navigate = useNavigate()
 
@@ -23,10 +23,16 @@ const Header = () => {
     { name: "Тренировки", path: "/trainings" },
     { name: "Расписание", path: "/schedule" },
     { name: "Наша команда", path: "/team" },
-    { name: "Панель администратора", path: "/admin" },
+    { name: "Панель администратора", path: "/admin", role: "Admin" },
   ];
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+  const current = location.pathname;
+  if (path === "/admin") {
+    return current.startsWith("/admin/") || current.startsWith("/profiles/");
+  }
+  return current === path;
+};
 
   return (
     <>
@@ -66,7 +72,12 @@ const Header = () => {
 
         {/* Desktop nav */}
         <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1, position: "absolute", left: "50%", transform: "translateX(-50%)", zIndex: 1, }}>
-          {navItems.map((item) => (
+          {navItems.filter((item) => {
+              // если у пункта нет роли — показываем всегда
+              if (!item.role) return true;
+              // иначе показываем только если роль совпадает
+              return item.role === user?.userRole;
+          }).map((item) => (
             <Button
               key={item.path}
               component={RouterLink}
