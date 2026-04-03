@@ -17,9 +17,10 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import { useState } from "react";
-import { ClientDTO, MembershipTypeDTO } from "../../api/g";
+import { ClientDTO, CreateMembershipDTO, MembershipTypeDTO } from "../../api/g";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
+import { apiClient } from "../../api/apiClient";
 
 interface CreateMembershipDialogProps {
   open: boolean;
@@ -28,6 +29,7 @@ interface CreateMembershipDialogProps {
   selectedClient: ClientDTO;
   error: string | null;
   setError: (str: string) => void;
+  onSuccess: () => void;
 }
 
 export const CreateMembershipDialog = ({
@@ -36,20 +38,13 @@ export const CreateMembershipDialog = ({
   membershipTypes,
   selectedClient,
   error,
-  setError
+  setError,
+  onSuccess
 }: CreateMembershipDialogProps) => {
   const [step, setStep] = useState<"create" | "confirm">("create");
   const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
-
-  const [membershipFormData, setMembershipFormData] = useState({
-    membershipId: "",
-    bonuses: "0",
-    availableBonuses: 100, // заглушка
-  });
-
-  const selectedMembershipType = membershipTypes.find(
-    (m) => m.id === parseInt(membershipFormData.membershipId)
-  );
+  const [selectedMembershipType, setSelectedMembershipType] = useState<MembershipTypeDTO | null>(null);
+  const [bonuses, setBonuses] = useState<number>(0);
 
   const calculateEndDate = () => {
     if (!selectedMembershipType || !startDate) return new Date();
@@ -61,44 +56,67 @@ export const CreateMembershipDialog = ({
 
   const calculateFinalPrice = () => {
     if (!selectedMembershipType) return 0;
-    return (
-      selectedMembershipType.price! - (parseFloat(membershipFormData.bonuses) || 0)
-    );
+    return selectedMembershipType.price! - bonuses;
   };
 
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
-    if (membershipFormData.membershipId === "")
+    if (!selectedMembershipType)
     {
-        setError("Необходимо выбрать тип абонемента");
-        return;
+      setError("Необходимо выбрать тип абонемента");
+      return;
     }
+    if (!startDate)
+    {
+      setError("Необходимо ввести дату");
+      return;
+    }
+    if (startDate.startOf('day').isBefore(dayjs().startOf('day'))) 
+    {
+      setError("Дата начала должна быть не раньше текущего дня");
+      return;
+    }
+
     setError("");
     setStep("confirm");
   };
 
-  const handleConfirm = () => {
-    alert("Оплата подтверждена");
-    setError("");
-    onClose();
-    setStep("create");
+  const handleConfirm = async () => {
+    try {
+      const dto = new CreateMembershipDTO();
+      dto.clientId = selectedClient.id;
+      dto.membershipTypeId = selectedMembershipType!.id;
+      dto.paidWithBonuses = bonuses;
+      dto.startDate = startDate!.toDate();
+      const data = await apiClient.addMembership(dto);
+      await onSuccess();
+      handleClose();
+    } catch (error: any) {
+      setError(error.message);
+    }
   };
 
+  const handleClose = () => {
+    onClose();
+    setStep("create");
+    setStartDate(dayjs());
+    setBonuses(0);
+    setSelectedMembershipType(null);
+  }
+
   const handleSpendAllBonuses = () => {
-    setMembershipFormData((prev) => ({
-      ...prev,
-      bonuses: prev.availableBonuses.toString(),
-    }));
+    const b = selectedClient.bonuses! > selectedMembershipType!.price! ? selectedMembershipType!.price! : selectedClient.bonuses!;
+    setBonuses(b);
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
       {/* ШАГ 1 */}
       {step === "create" && (
         <>
           <DialogTitle>
             <Stack direction="row" spacing={1} alignItems="center">
-              <Button size="small" onClick={onClose}>
+              <Button size="small" onClick={handleClose}>
                 <ArrowBackIcon />
               </Button>
               <Typography variant="h6">
@@ -113,17 +131,12 @@ export const CreateMembershipDialog = ({
                 {/* Autocomplete */}
                 <Autocomplete
                   options={membershipTypes}
-                  getOptionLabel={(option) => `${option.name} (${option.price}₽, ${option.cashbackPercentage}% кэшбека, ${option.duration} мес.)`
-  }
-                  onChange={(_, value) =>
-                    setMembershipFormData((prev) => ({
-                      ...prev,
-                      membershipId: value?.id!.toString() || "",
-                    }))
-                  }
+                  getOptionLabel={(option) => `${option.name} (${option.price}₽, ${option.cashbackPercentage}% кэшбека, ${option.duration} мес.)`}
+                  onChange={(_, value) => setSelectedMembershipType(value!)}
                   renderInput={(params) => (
                     <TextField {...params} label="Тип абонемента" required />
                   )}
+                  value={selectedMembershipType}
                 />
 
                 {/* Date */}
@@ -131,6 +144,7 @@ export const CreateMembershipDialog = ({
                     label="Дата начала"
                     value={startDate}
                     onChange={setStartDate}
+                    minDate={dayjs()}
                     slotProps={{
                     textField: {
                         fullWidth: true,
@@ -144,7 +158,7 @@ export const CreateMembershipDialog = ({
           </DialogContent>
 
           <DialogActions>
-            <Button onClick={() => {setError(""); onClose();}}>Отмена</Button>
+            <Button onClick={handleClose}>Отмена</Button>
             <Button
               variant="contained"
               onClick={handleNext}
@@ -229,15 +243,21 @@ export const CreateMembershipDialog = ({
                     </Box>
 
                     <TextField
-                      label={`Бонусы (доступно: ${membershipFormData.availableBonuses})`}
+                      label={`Бонусы (доступно: ${selectedClient.bonuses})`}
                       type="number"
-                      value={membershipFormData.bonuses}
-                      onChange={(e) =>
-                        setMembershipFormData((prev) => ({
-                          ...prev,
-                          bonuses: e.target.value,
-                        }))
-                      }
+                      value={bonuses}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        const value = raw === "" ? 0 : Number(raw);
+                        setBonuses(Math.max(0, Math.min(value, selectedClient.bonuses!)));
+                      }}
+                      slotProps={{
+                        htmlInput: {
+                          min: 0,
+                          max: selectedClient.bonuses,
+                          step: 1,
+                        },
+                      }}
                     />
 
                     <Button onClick={handleSpendAllBonuses}>
@@ -245,9 +265,16 @@ export const CreateMembershipDialog = ({
                     </Button>
 
                     <Box display="flex" justifyContent="space-between">
+                      <Typography>Будет начислено бонусов</Typography>
+                      <Typography>
+                        {selectedMembershipType.price! / 100 * selectedMembershipType.cashbackPercentage!}
+                      </Typography>
+                    </Box>
+
+                    <Box display="flex" justifyContent="space-between">
                       <Typography>Скидка</Typography>
                       <Typography>
-                        -{membershipFormData.bonuses}
+                        -{bonuses}
                       </Typography>
                     </Box>
 
@@ -266,11 +293,12 @@ export const CreateMembershipDialog = ({
                   </Stack>
                 </CardContent>
               </Card>
+              {error && <Typography color="error" marginTop={1}>{error}</Typography>}
             </Stack>
           </DialogContent>
 
           <DialogActions>
-            <Button onClick={() => setStep("create")}>
+            <Button onClick={() => {setError(""); setStep("create")}}>
               Назад
             </Button>
             <Button

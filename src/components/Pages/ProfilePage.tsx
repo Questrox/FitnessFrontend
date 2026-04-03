@@ -17,17 +17,19 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import { ClientDTO, MembershipDTO, MembershipTypeDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { ProfileInfo } from "../ProfileTabs/ProfileInfo";
 import { MembershipHistory } from "../ProfileTabs/MembershipHistory";
 import { ReservationHistory } from "../ProfileTabs/ReservationHistory";
 import { CreateMembershipDialog } from "../ProfileTabs/CreateMembershipDialog";
 
-type TabType = "profile" | "memberships" | "classes";
-
 const ProfilePage = () => {
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState<TabType>("profile");
+
+  // управление вкладками
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "profile";
+  const [activeTab, setActiveTab] = useState(initialTab);
   
   const [client, setClient] = useState<ClientDTO | undefined>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -39,15 +41,36 @@ const ProfilePage = () => {
   const [membershipTypes, setMembershipTypes] = useState<MembershipTypeDTO[]>([]);
   const [membershipDialogError, setMembershipDialogError] = useState<string | null>("");
 
+  // для сохранения выбранной вкладки
   useEffect(() => {
-    fetchClient();
+    if (activeTab !== searchParams.get("tab")) {
+      setSearchParams({ tab: activeTab });
+    }
+  }, [activeTab, searchParams, setSearchParams]);
+
+  useEffect(() => {
+    fetchData();
   }, [])
       
+  const fetchData = async () => {
+    await fetchClient();
+
+    if (id)
+    {
+      try {
+        const types = await apiClient.getMembershipTypes();
+        setMembershipTypes(types || []);
+      } catch (error) {
+        console.error("Ошибка при загрузке типов абонементов", error);
+      }
+    }
+  }
+
   const fetchClient = async () => {
+    setIsLoading(true);
     const currDate = new Date();
     try {
       let data : ClientDTO | undefined;
-      console.log(id);
       if (id) {
         data = await apiClient.getClientById(parseInt(id));
       } else {
@@ -60,20 +83,10 @@ const ProfilePage = () => {
         const diffDays = Math.floor(Math.abs(currMembership!.endDate!.getTime() - currDate.getTime()) / (1000 * 60 * 60 * 24));
         setDaysUntilExpiration(diffDays);
       }
+      console.log(client);
     } catch (error) {
       console.error("Ошибка при загрузке клиента:", error)
     }
-
-    if (id)
-    {
-      try {
-        const types = await apiClient.getMembershipTypes();
-        setMembershipTypes(types || []);
-      } catch (error) {
-        console.error("Ошибка при загрузке типов абонементов", error);
-      }
-    }
-
     setIsLoading(false);
   }
 
@@ -170,6 +183,7 @@ const ProfilePage = () => {
           selectedClient={client}
           error={membershipDialogError}
           setError={setMembershipDialogError}
+          onSuccess={fetchClient}
         />
 
         {/* Tabs */}

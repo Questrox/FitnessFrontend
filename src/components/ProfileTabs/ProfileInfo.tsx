@@ -226,17 +226,6 @@ export function ProfileInfo({ client }: Props) {
                     </Typography>
                   </Box>
                 </Box>
-
-                {/* Warning */}
-                <Box
-                  sx={{
-                    p: 2,
-                    borderRadius: 2,
-                    bgcolor: "warning.light",
-                    color: "warning.contrastText"
-                  }}
-                >
-                </Box>
               </Stack>
             ) : (
               <Box

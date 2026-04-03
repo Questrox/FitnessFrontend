@@ -3286,6 +3286,7 @@ export class CreateCancellationNotificationDTO implements ICreateCancellationNot
     isNotified?: boolean;
     trainingId?: number;
     clientId?: number;
+    adminId?: string | undefined;
 
     constructor(data?: ICreateCancellationNotificationDTO) {
         if (data) {
@@ -3301,6 +3302,7 @@ export class CreateCancellationNotificationDTO implements ICreateCancellationNot
             this.isNotified = _data["isNotified"];
             this.trainingId = _data["trainingId"];
             this.clientId = _data["clientId"];
+            this.adminId = _data["adminId"];
         }
     }
 
@@ -3316,6 +3318,7 @@ export class CreateCancellationNotificationDTO implements ICreateCancellationNot
         data["isNotified"] = this.isNotified;
         data["trainingId"] = this.trainingId;
         data["clientId"] = this.clientId;
+        data["adminId"] = this.adminId;
         return data;
     }
 }
@@ -3324,6 +3327,7 @@ export interface ICreateCancellationNotificationDTO {
     isNotified?: boolean;
     trainingId?: number;
     clientId?: number;
+    adminId?: string | undefined;
 }
 
 export class CreateClientDTO implements ICreateClientDTO {
@@ -3460,10 +3464,10 @@ export interface ICreateCoachScheduleDTO {
 
 export class CreateMembershipDTO implements ICreateMembershipDTO {
     startDate?: Date;
-    endDate?: Date;
+    paidWithBonuses?: number;
     clientId?: number;
     membershipTypeId?: number;
-    paymentId?: number;
+    adminId?: string | undefined;
 
     constructor(data?: ICreateMembershipDTO) {
         if (data) {
@@ -3477,10 +3481,10 @@ export class CreateMembershipDTO implements ICreateMembershipDTO {
     init(_data?: any) {
         if (_data) {
             this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
-            this.endDate = _data["endDate"] ? new Date(_data["endDate"].toString()) : undefined as any;
+            this.paidWithBonuses = _data["paidWithBonuses"];
             this.clientId = _data["clientId"];
             this.membershipTypeId = _data["membershipTypeId"];
-            this.paymentId = _data["paymentId"];
+            this.adminId = _data["adminId"];
         }
     }
 
@@ -3494,20 +3498,20 @@ export class CreateMembershipDTO implements ICreateMembershipDTO {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["startDate"] = this.startDate ? this.startDate.toISOString() : undefined as any;
-        data["endDate"] = this.endDate ? this.endDate.toISOString() : undefined as any;
+        data["paidWithBonuses"] = this.paidWithBonuses;
         data["clientId"] = this.clientId;
         data["membershipTypeId"] = this.membershipTypeId;
-        data["paymentId"] = this.paymentId;
+        data["adminId"] = this.adminId;
         return data;
     }
 }
 
 export interface ICreateMembershipDTO {
     startDate?: Date;
-    endDate?: Date;
+    paidWithBonuses?: number;
     clientId?: number;
     membershipTypeId?: number;
-    paymentId?: number;
+    adminId?: string | undefined;
 }
 
 export class CreateMembershipTypeDTO implements ICreateMembershipTypeDTO {
@@ -3567,6 +3571,8 @@ export class CreatePaymentDTO implements ICreatePaymentDTO {
     price?: number;
     cashbackPercentage?: number;
     paidWithBonuses?: number;
+    clientId?: number;
+    adminId?: string | undefined;
 
     constructor(data?: ICreatePaymentDTO) {
         if (data) {
@@ -3583,6 +3589,8 @@ export class CreatePaymentDTO implements ICreatePaymentDTO {
             this.price = _data["price"];
             this.cashbackPercentage = _data["cashbackPercentage"];
             this.paidWithBonuses = _data["paidWithBonuses"];
+            this.clientId = _data["clientId"];
+            this.adminId = _data["adminId"];
         }
     }
 
@@ -3599,6 +3607,8 @@ export class CreatePaymentDTO implements ICreatePaymentDTO {
         data["price"] = this.price;
         data["cashbackPercentage"] = this.cashbackPercentage;
         data["paidWithBonuses"] = this.paidWithBonuses;
+        data["clientId"] = this.clientId;
+        data["adminId"] = this.adminId;
         return data;
     }
 }
@@ -3608,6 +3618,8 @@ export interface ICreatePaymentDTO {
     price?: number;
     cashbackPercentage?: number;
     paidWithBonuses?: number;
+    clientId?: number;
+    adminId?: string | undefined;
 }
 
 export class CreateTrainingDTO implements ICreateTrainingDTO {
@@ -3793,7 +3805,6 @@ export class MembershipDTO implements IMembershipDTO {
     startDate?: Date;
     endDate?: Date;
     clientId?: number;
-    client?: ClientDTO;
     membershipTypeId?: number;
     membershipType?: MembershipTypeDTO;
     paymentId?: number;
@@ -3814,7 +3825,6 @@ export class MembershipDTO implements IMembershipDTO {
             this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
             this.endDate = _data["endDate"] ? new Date(_data["endDate"].toString()) : undefined as any;
             this.clientId = _data["clientId"];
-            this.client = _data["client"] ? ClientDTO.fromJS(_data["client"]) : undefined as any;
             this.membershipTypeId = _data["membershipTypeId"];
             this.membershipType = _data["membershipType"] ? MembershipTypeDTO.fromJS(_data["membershipType"]) : undefined as any;
             this.paymentId = _data["paymentId"];
@@ -3835,7 +3845,6 @@ export class MembershipDTO implements IMembershipDTO {
         data["startDate"] = this.startDate ? this.startDate.toISOString() : undefined as any;
         data["endDate"] = this.endDate ? this.endDate.toISOString() : undefined as any;
         data["clientId"] = this.clientId;
-        data["client"] = this.client ? this.client.toJSON() : undefined as any;
         data["membershipTypeId"] = this.membershipTypeId;
         data["membershipType"] = this.membershipType ? this.membershipType.toJSON() : undefined as any;
         data["paymentId"] = this.paymentId;
@@ -3849,7 +3858,6 @@ export interface IMembershipDTO {
     startDate?: Date;
     endDate?: Date;
     clientId?: number;
-    client?: ClientDTO;
     membershipTypeId?: number;
     membershipType?: MembershipTypeDTO;
     paymentId?: number;
@@ -3863,7 +3871,6 @@ export class MembershipTypeDTO implements IMembershipTypeDTO {
     price?: number;
     cashbackPercentage?: number;
     duration?: number;
-    memberships?: MembershipDTO[] | undefined;
 
     constructor(data?: IMembershipTypeDTO) {
         if (data) {
@@ -3882,11 +3889,6 @@ export class MembershipTypeDTO implements IMembershipTypeDTO {
             this.price = _data["price"];
             this.cashbackPercentage = _data["cashbackPercentage"];
             this.duration = _data["duration"];
-            if (Array.isArray(_data["memberships"])) {
-                this.memberships = [] as any;
-                for (let item of _data["memberships"])
-                    this.memberships!.push(MembershipDTO.fromJS(item));
-            }
         }
     }
 
@@ -3905,11 +3907,6 @@ export class MembershipTypeDTO implements IMembershipTypeDTO {
         data["price"] = this.price;
         data["cashbackPercentage"] = this.cashbackPercentage;
         data["duration"] = this.duration;
-        if (Array.isArray(this.memberships)) {
-            data["memberships"] = [];
-            for (let item of this.memberships)
-                data["memberships"].push(item ? item.toJSON() : undefined as any);
-        }
         return data;
     }
 }
@@ -3921,7 +3918,6 @@ export interface IMembershipTypeDTO {
     price?: number;
     cashbackPercentage?: number;
     duration?: number;
-    memberships?: MembershipDTO[] | undefined;
 }
 
 export class PaymentDTO implements IPaymentDTO {
@@ -3930,7 +3926,6 @@ export class PaymentDTO implements IPaymentDTO {
     price?: number;
     cashbackPercentage?: number;
     paidWithBonuses?: number;
-    membership?: MembershipDTO;
     trainingReservation?: TrainingReservationDTO;
 
     constructor(data?: IPaymentDTO) {
@@ -3949,7 +3944,6 @@ export class PaymentDTO implements IPaymentDTO {
             this.price = _data["price"];
             this.cashbackPercentage = _data["cashbackPercentage"];
             this.paidWithBonuses = _data["paidWithBonuses"];
-            this.membership = _data["membership"] ? MembershipDTO.fromJS(_data["membership"]) : undefined as any;
             this.trainingReservation = _data["trainingReservation"] ? TrainingReservationDTO.fromJS(_data["trainingReservation"]) : undefined as any;
         }
     }
@@ -3968,7 +3962,6 @@ export class PaymentDTO implements IPaymentDTO {
         data["price"] = this.price;
         data["cashbackPercentage"] = this.cashbackPercentage;
         data["paidWithBonuses"] = this.paidWithBonuses;
-        data["membership"] = this.membership ? this.membership.toJSON() : undefined as any;
         data["trainingReservation"] = this.trainingReservation ? this.trainingReservation.toJSON() : undefined as any;
         return data;
     }
@@ -3980,7 +3973,6 @@ export interface IPaymentDTO {
     price?: number;
     cashbackPercentage?: number;
     paidWithBonuses?: number;
-    membership?: MembershipDTO;
     trainingReservation?: TrainingReservationDTO;
 }
 
