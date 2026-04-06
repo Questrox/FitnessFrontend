@@ -235,60 +235,64 @@ export function MembershipManagement() {
 
       {/* List */}
       <GridLegacy container spacing={3}>
-        {membershipTypes.map((membershipType) => (
-          <GridLegacy item xs={12} md={6} key={membershipType.id}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardContent>
-                <Box display="flex" justifyContent="space-between">
-                  <Box>
-                    <Typography variant="h6" fontWeight={700}>
-                      {membershipType.name}
-                    </Typography>
+      {membershipTypes.map((membershipType) => (
+        <GridLegacy item xs={12} md={6} key={membershipType.id}>
+          <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+            <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
+              <Box display="flex" justifyContent="space-between">
+                <Box>
+                  <Typography variant="h6" fontWeight={700}>
+                    {membershipType.name}
+                  </Typography>
 
-                    <Box mt={1} display="flex" gap={1} flexWrap="wrap">
-                      <Chip label={`${membershipType.price} ₽`} color="success" />
-                      <Chip label={`${membershipType.duration} мес.`} />
-                      <Chip label={`${membershipType.cashbackPercentage}%`} color="secondary" />
-                    </Box>
-                  </Box>
-
-                  <Box sx={{minWidth: 100}}>
-                    <IconButton onClick={() => handleEdit(membershipType)}>
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton onClick={() => handleDelete(membershipType)}>
-                      <DeleteIcon />
-                    </IconButton>
+                  <Box mt={1} display="flex" gap={1} flexWrap="wrap">
+                    <Chip label={`${membershipType.price} ₽`} color="success" />
+                    <Chip label={`${membershipType.duration} мес.`} />
+                    <Chip label={`${membershipType.cashbackPercentage}%`} color="secondary" />
                   </Box>
                 </Box>
 
-                <Typography mt={2} color="text.secondary">
-                  {membershipType.description}
-                </Typography>
+                <Box sx={{ minWidth: 100 }}>
+                  <IconButton onClick={() => handleEdit(membershipType)}>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton onClick={() => handleDelete(membershipType)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Box>
+              </Box>
 
-                <GridLegacy container mt={2}>
-                  <GridLegacy item xs={4}>
-                    <Typography variant="caption">Цена</Typography>
-                    <Typography fontWeight={700}>{membershipType.price} ₽</Typography>
-                  </GridLegacy>
-                  <GridLegacy item xs={4}>
-                    <Typography variant="caption">Срок</Typography>
-                    <Typography fontWeight={700}>
-                      {membershipType.duration} мес.
-                    </Typography>
-                  </GridLegacy>
-                  <GridLegacy item xs={4}>
-                    <Typography variant="caption">Кэшбэк</Typography>
-                    <Typography fontWeight={700}>
-                      {membershipType.cashbackPercentage}%
-                    </Typography>
-                  </GridLegacy>
+              <Typography mt={2} color="text.secondary" mb={2}>
+                {membershipType.description}
+              </Typography>
+
+              <GridLegacy
+                container
+                sx={{
+                  mt: "auto",
+                  pt: 2,
+                  borderTop: "1px solid",
+                  borderColor: "divider",
+                }}
+              >
+                <GridLegacy item xs={4}>
+                  <Typography variant="caption">Цена</Typography>
+                  <Typography fontWeight={700}>{membershipType.price} ₽</Typography>
                 </GridLegacy>
-              </CardContent>
-            </Card>
-          </GridLegacy>
-        ))}
-      </GridLegacy>
+                <GridLegacy item xs={4}>
+                  <Typography variant="caption">Срок</Typography>
+                  <Typography fontWeight={700}>{membershipType.duration} мес.</Typography>
+                </GridLegacy>
+                <GridLegacy item xs={4}>
+                  <Typography variant="caption">Кэшбэк</Typography>
+                  <Typography fontWeight={700}>{membershipType.cashbackPercentage}%</Typography>
+                </GridLegacy>
+              </GridLegacy>
+            </CardContent>
+          </Card>
+        </GridLegacy>
+      ))}
+    </GridLegacy>
     </Box>
   );
 }

@@ -11,3 +11,61 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+@media print {
+  /* Сбрасываем отступы у body и html */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+
+  /* Скрываем всё, кроме #print-area и его содержимого */
+  body * {
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Показываем только #print-area и его потомков */
+  #print-area,
+  #print-area * {
+    visibility: visible !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin: revert !important;
+    padding: revert !important;
+  }
+
+  /* Специально для Divider */
+  #print-area .MuiDivider-root {
+    visibility: visible !important;
+    display: flex !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+    border-width: 1px !important;
+    margin: 16px 0 !important;
+  }
+  /* Убеждаемся, что псевдоэлементы Divider тоже видны */
+  #print-area .MuiDivider-root::before,
+  #print-area .MuiDivider-root::after {
+    visibility: visible !important;
+    border-color: inherit !important;
+  }
+
+  /* Фиксируем область печати в начале страницы */
+  #print-area {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Включаем печать фона и цветов */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

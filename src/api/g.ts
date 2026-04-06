@@ -383,7 +383,7 @@ export class ApiClient {
      * @param body (optional) 
      * @return OK
      */
-    addClient(body: CreateClientDTO | undefined): Promise<ClientDTO> {
+    addClient(body: CreateClientDTO | undefined): Promise<AddClientResult> {
         let url_ = this.baseUrl + "/api/Client/AddClient";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -403,14 +403,14 @@ export class ApiClient {
         });
     }
 
-    protected processAddClient(response: Response): Promise<ClientDTO> {
+    protected processAddClient(response: Response): Promise<AddClientResult> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = ClientDTO.fromJS(resultData200);
+            result200 = AddClientResult.fromJS(resultData200);
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -418,7 +418,7 @@ export class ApiClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<ClientDTO>(null as any);
+        return Promise.resolve<AddClientResult>(null as any);
     }
 
     /**
@@ -3010,6 +3010,50 @@ export class ApiClient {
     }
 }
 
+export class AddClientResult implements IAddClientResult {
+    clientId?: number;
+    userName?: string | undefined;
+    password?: string | undefined;
+
+    constructor(data?: IAddClientResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.clientId = _data["clientId"];
+            this.userName = _data["userName"];
+            this.password = _data["password"];
+        }
+    }
+
+    static fromJS(data: any): AddClientResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new AddClientResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["clientId"] = this.clientId;
+        data["userName"] = this.userName;
+        data["password"] = this.password;
+        return data;
+    }
+}
+
+export interface IAddClientResult {
+    clientId?: number;
+    userName?: string | undefined;
+    password?: string | undefined;
+}
+
 export class CancellationNotificationDTO implements ICancellationNotificationDTO {
     id?: number;
     isNotified?: boolean;
@@ -3331,8 +3375,8 @@ export interface ICreateCancellationNotificationDTO {
 }
 
 export class CreateClientDTO implements ICreateClientDTO {
-    bonuses?: number;
-    userId?: string | undefined;
+    fullName?: string | undefined;
+    phoneNumber?: string | undefined;
 
     constructor(data?: ICreateClientDTO) {
         if (data) {
@@ -3345,8 +3389,8 @@ export class CreateClientDTO implements ICreateClientDTO {
 
     init(_data?: any) {
         if (_data) {
-            this.bonuses = _data["bonuses"];
-            this.userId = _data["userId"];
+            this.fullName = _data["fullName"];
+            this.phoneNumber = _data["phoneNumber"];
         }
     }
 
@@ -3359,15 +3403,15 @@ export class CreateClientDTO implements ICreateClientDTO {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["bonuses"] = this.bonuses;
-        data["userId"] = this.userId;
+        data["fullName"] = this.fullName;
+        data["phoneNumber"] = this.phoneNumber;
         return data;
     }
 }
 
 export interface ICreateClientDTO {
-    bonuses?: number;
-    userId?: string | undefined;
+    fullName?: string | undefined;
+    phoneNumber?: string | undefined;
 }
 
 export class CreateCoachDTO implements ICreateCoachDTO {

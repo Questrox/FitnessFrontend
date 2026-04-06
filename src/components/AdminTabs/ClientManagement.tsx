@@ -19,15 +19,20 @@ import SearchIcon from "@mui/icons-material/Search";
 import PhoneIcon from "@mui/icons-material/Phone";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import PersonIcon from "@mui/icons-material/Person";
-import { ClientDTO, MembershipDTO } from "../../api/g";
+import { ClientDTO, CreateClientDTO, MembershipDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
 import { useNavigate } from "react-router-dom";
+import { CredentialsPrint } from "./CredentialsPrint";
 
 export function ClientManagement() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [credentials, setCredentials] = useState<{
+    username: string;
+    password: string;
+  } | null>(null);
 
   const [newClientData, setNewClientData] = useState({
     name: "",
@@ -35,7 +40,7 @@ export function ClientManagement() {
   });
 
   const [filteredClients, setFilteredClients] = useState<ClientDTO[]>([]);
-  const [memberships, setMEmberships] = useState<MembershipDTO[]>([]);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     fetchClients();
@@ -51,11 +56,40 @@ export function ClientManagement() {
     setIsLoading(false);
   }
 
-  const handleCreateClient = (e: React.FormEvent) => {
+  const handleCreateClient = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert(JSON.stringify(newClientData, null, 2));
-    setOpen(false);
+    //alert(JSON.stringify(newClientData, null, 2));
+
+    try
+    {
+      const dto = new CreateClientDTO();
+      dto.fullName = newClientData.name;
+      dto.phoneNumber = newClientData.phoneNumber;
+      const data = await apiClient.addClient(dto);
+      setCredentials({username: data.userName!, password: data.password!});
+      handleCloseDialog();
+      await fetchClients();
+    } catch (err: any)
+    {
+      setError(err.message);
+    }
   };
+
+  const handleCloseDialog = () => {
+    setOpen(false);
+    setNewClientData({name: "", phoneNumber: "",})
+    setError("");
+  }
+
+  if (credentials) {
+    return (
+      <CredentialsPrint
+        username={credentials.username}
+        password={credentials.password}
+        onClose={() => setCredentials(null)}
+      />
+    );
+  }
 
   if (isLoading)
     return <CircularProgress/>
@@ -190,7 +224,7 @@ export function ClientManagement() {
       )}
 
       {/* Create Dialog */}
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={open} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>Создание клиента</DialogTitle>
 
         <DialogContent>
@@ -221,10 +255,11 @@ export function ClientManagement() {
               }
             />
           </Box>
+          {error && <Typography color="error" marginTop={1}>{error}</Typography>}
         </DialogContent>
 
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Отмена</Button>
+          <Button onClick={handleCloseDialog}>Отмена</Button>
           <Button type="submit" form="createClientForm" variant="contained">
             Создать клиента
           </Button>

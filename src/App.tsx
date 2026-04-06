@@ -1,5 +1,6 @@
 import React from 'react';
 import logo from './logo.svg';
+import './index.css';
 import { useAuth, AuthProvider } from './context/AuthContext';
 import { CircularProgress, Typography } from '@mui/material';
 import { Navigate, Routes, Route } from 'react-router-dom';

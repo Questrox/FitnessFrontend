@@ -221,7 +221,7 @@ export function ProfileInfo({ client }: Props) {
                       </Typography>
                     </Stack>
 
-                    <Typography fontWeight={700}>
+                    <Typography fontWeight={700} sx = {{ mt: 1 }}>
                       {new Date(membership.endDate!).toLocaleDateString()}
                     </Typography>
                   </Box>
