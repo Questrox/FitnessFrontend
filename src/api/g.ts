@@ -2973,11 +2973,10 @@ export class ApiClient {
      * @param photoPath (optional) 
      * @param duration (optional) 
      * @param cashbackPercentage (optional) 
-     * @param trainings (optional) 
      * @param image (optional) 
      * @return OK
      */
-    updateTrainingType(routeId: number, id: number | undefined, maxClients: number | undefined, price: number | undefined, name: string | undefined, description: string | undefined, photoPath: string | undefined, duration: number | undefined, cashbackPercentage: number | undefined, trainings: TrainingDTO[] | undefined, image: FileParameter | undefined): Promise<TrainingTypeDTO> {
+    updateTrainingType(routeId: number, id: number | undefined, maxClients: number | undefined, price: number | undefined, name: string | undefined, description: string | undefined, photoPath: string | undefined, duration: number | undefined, cashbackPercentage: number | undefined, image: FileParameter | undefined): Promise<TrainingTypeDTO> {
         let url_ = this.baseUrl + "/api/TrainingType/UpdateTrainingType/{routeId}?";
         if (routeId === undefined || routeId === null)
             throw new globalThis.Error("The parameter 'routeId' must be defined.");
@@ -3014,15 +3013,6 @@ export class ApiClient {
             throw new globalThis.Error("The parameter 'cashbackPercentage' cannot be null.");
         else if (cashbackPercentage !== undefined)
             url_ += "CashbackPercentage=" + encodeURIComponent("" + cashbackPercentage) + "&";
-        if (trainings === null)
-            throw new globalThis.Error("The parameter 'trainings' cannot be null.");
-        else if (trainings !== undefined)
-            trainings && trainings.forEach((item, index) => {
-                for (const attr in item)
-        			if (item.hasOwnProperty(attr)) {
-        				url_ += "Trainings[" + index + "]." + attr + "=" + encodeURIComponent("" + (item as any)[attr]) + "&";
-        			}
-            });
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = new FormData();
@@ -3366,7 +3356,6 @@ export class CoachDTO implements ICoachDTO {
     userId?: string | undefined;
     user?: UserDTO;
     coachSchedules?: CoachScheduleDTO[] | undefined;
-    trainings?: TrainingDTO[] | undefined;
 
     constructor(data?: ICoachDTO) {
         if (data) {
@@ -3388,11 +3377,6 @@ export class CoachDTO implements ICoachDTO {
                 this.coachSchedules = [] as any;
                 for (let item of _data["coachSchedules"])
                     this.coachSchedules!.push(CoachScheduleDTO.fromJS(item));
-            }
-            if (Array.isArray(_data["trainings"])) {
-                this.trainings = [] as any;
-                for (let item of _data["trainings"])
-                    this.trainings!.push(TrainingDTO.fromJS(item));
             }
         }
     }
@@ -3416,11 +3400,6 @@ export class CoachDTO implements ICoachDTO {
             for (let item of this.coachSchedules)
                 data["coachSchedules"].push(item ? item.toJSON() : undefined as any);
         }
-        if (Array.isArray(this.trainings)) {
-            data["trainings"] = [];
-            for (let item of this.trainings)
-                data["trainings"].push(item ? item.toJSON() : undefined as any);
-        }
         return data;
     }
 }
@@ -3432,7 +3411,6 @@ export interface ICoachDTO {
     userId?: string | undefined;
     user?: UserDTO;
     coachSchedules?: CoachScheduleDTO[] | undefined;
-    trainings?: TrainingDTO[] | undefined;
 }
 
 export class CoachScheduleDTO implements ICoachScheduleDTO {
@@ -3832,7 +3810,7 @@ export interface ICreatePaymentDTO {
 }
 
 export class CreateTrainingDTO implements ICreateTrainingDTO {
-    date?: Date;
+    startDate?: Date;
     coachId?: number;
     trainingTypeId?: number;
 
@@ -3847,7 +3825,7 @@ export class CreateTrainingDTO implements ICreateTrainingDTO {
 
     init(_data?: any) {
         if (_data) {
-            this.date = _data["date"] ? new Date(_data["date"].toString()) : undefined as any;
+            this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
             this.coachId = _data["coachId"];
             this.trainingTypeId = _data["trainingTypeId"];
         }
@@ -3862,7 +3840,7 @@ export class CreateTrainingDTO implements ICreateTrainingDTO {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["date"] = this.date ? this.date.toISOString() : undefined as any;
+        data["startDate"] = this.startDate ? this.startDate.toISOString() : undefined as any;
         data["coachId"] = this.coachId;
         data["trainingTypeId"] = this.trainingTypeId;
         return data;
@@ -3870,7 +3848,7 @@ export class CreateTrainingDTO implements ICreateTrainingDTO {
 }
 
 export interface ICreateTrainingDTO {
-    date?: Date;
+    startDate?: Date;
     coachId?: number;
     trainingTypeId?: number;
 }
@@ -4327,7 +4305,10 @@ export interface IReservationStatusDTO {
 
 export class TrainingDTO implements ITrainingDTO {
     id?: number;
-    date?: Date;
+    startDate?: Date;
+    endDate?: Date;
+    price?: number;
+    cashbackPercentage?: number;
     coachId?: number;
     trainingTypeId?: number;
     trainingStatusId?: number;
@@ -4335,7 +4316,6 @@ export class TrainingDTO implements ITrainingDTO {
     trainingType?: TrainingTypeDTO;
     trainingStatus?: TrainingStatusDTO;
     trainingReservations?: TrainingReservationDTO[] | undefined;
-    cancellationNotifications?: CancellationNotificationDTO[] | undefined;
 
     constructor(data?: ITrainingDTO) {
         if (data) {
@@ -4349,7 +4329,10 @@ export class TrainingDTO implements ITrainingDTO {
     init(_data?: any) {
         if (_data) {
             this.id = _data["id"];
-            this.date = _data["date"] ? new Date(_data["date"].toString()) : undefined as any;
+            this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
+            this.endDate = _data["endDate"] ? new Date(_data["endDate"].toString()) : undefined as any;
+            this.price = _data["price"];
+            this.cashbackPercentage = _data["cashbackPercentage"];
             this.coachId = _data["coachId"];
             this.trainingTypeId = _data["trainingTypeId"];
             this.trainingStatusId = _data["trainingStatusId"];
@@ -4360,11 +4343,6 @@ export class TrainingDTO implements ITrainingDTO {
                 this.trainingReservations = [] as any;
                 for (let item of _data["trainingReservations"])
                     this.trainingReservations!.push(TrainingReservationDTO.fromJS(item));
-            }
-            if (Array.isArray(_data["cancellationNotifications"])) {
-                this.cancellationNotifications = [] as any;
-                for (let item of _data["cancellationNotifications"])
-                    this.cancellationNotifications!.push(CancellationNotificationDTO.fromJS(item));
             }
         }
     }
@@ -4379,7 +4357,10 @@ export class TrainingDTO implements ITrainingDTO {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id;
-        data["date"] = this.date ? this.date.toISOString() : undefined as any;
+        data["startDate"] = this.startDate ? this.startDate.toISOString() : undefined as any;
+        data["endDate"] = this.endDate ? this.endDate.toISOString() : undefined as any;
+        data["price"] = this.price;
+        data["cashbackPercentage"] = this.cashbackPercentage;
         data["coachId"] = this.coachId;
         data["trainingTypeId"] = this.trainingTypeId;
         data["trainingStatusId"] = this.trainingStatusId;
@@ -4391,18 +4372,16 @@ export class TrainingDTO implements ITrainingDTO {
             for (let item of this.trainingReservations)
                 data["trainingReservations"].push(item ? item.toJSON() : undefined as any);
         }
-        if (Array.isArray(this.cancellationNotifications)) {
-            data["cancellationNotifications"] = [];
-            for (let item of this.cancellationNotifications)
-                data["cancellationNotifications"].push(item ? item.toJSON() : undefined as any);
-        }
         return data;
     }
 }
 
 export interface ITrainingDTO {
     id?: number;
-    date?: Date;
+    startDate?: Date;
+    endDate?: Date;
+    price?: number;
+    cashbackPercentage?: number;
     coachId?: number;
     trainingTypeId?: number;
     trainingStatusId?: number;
@@ -4410,7 +4389,6 @@ export interface ITrainingDTO {
     trainingType?: TrainingTypeDTO;
     trainingStatus?: TrainingStatusDTO;
     trainingReservations?: TrainingReservationDTO[] | undefined;
-    cancellationNotifications?: CancellationNotificationDTO[] | undefined;
 }
 
 export class TrainingReservationDTO implements ITrainingReservationDTO {
@@ -4484,7 +4462,6 @@ export interface ITrainingReservationDTO {
 export class TrainingStatusDTO implements ITrainingStatusDTO {
     id?: number;
     name?: string | undefined;
-    trainings?: TrainingDTO[] | undefined;
 
     constructor(data?: ITrainingStatusDTO) {
         if (data) {
@@ -4499,11 +4476,6 @@ export class TrainingStatusDTO implements ITrainingStatusDTO {
         if (_data) {
             this.id = _data["id"];
             this.name = _data["name"];
-            if (Array.isArray(_data["trainings"])) {
-                this.trainings = [] as any;
-                for (let item of _data["trainings"])
-                    this.trainings!.push(TrainingDTO.fromJS(item));
-            }
         }
     }
 
@@ -4518,11 +4490,6 @@ export class TrainingStatusDTO implements ITrainingStatusDTO {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id;
         data["name"] = this.name;
-        if (Array.isArray(this.trainings)) {
-            data["trainings"] = [];
-            for (let item of this.trainings)
-                data["trainings"].push(item ? item.toJSON() : undefined as any);
-        }
         return data;
     }
 }
@@ -4530,7 +4497,6 @@ export class TrainingStatusDTO implements ITrainingStatusDTO {
 export interface ITrainingStatusDTO {
     id?: number;
     name?: string | undefined;
-    trainings?: TrainingDTO[] | undefined;
 }
 
 export class TrainingTypeDTO implements ITrainingTypeDTO {
@@ -4543,7 +4509,6 @@ export class TrainingTypeDTO implements ITrainingTypeDTO {
     image?: string | undefined;
     duration?: number;
     cashbackPercentage?: number;
-    trainings?: TrainingDTO[] | undefined;
 
     constructor(data?: ITrainingTypeDTO) {
         if (data) {
@@ -4565,11 +4530,6 @@ export class TrainingTypeDTO implements ITrainingTypeDTO {
             this.image = _data["image"];
             this.duration = _data["duration"];
             this.cashbackPercentage = _data["cashbackPercentage"];
-            if (Array.isArray(_data["trainings"])) {
-                this.trainings = [] as any;
-                for (let item of _data["trainings"])
-                    this.trainings!.push(TrainingDTO.fromJS(item));
-            }
         }
     }
 
@@ -4591,11 +4551,6 @@ export class TrainingTypeDTO implements ITrainingTypeDTO {
         data["image"] = this.image;
         data["duration"] = this.duration;
         data["cashbackPercentage"] = this.cashbackPercentage;
-        if (Array.isArray(this.trainings)) {
-            data["trainings"] = [];
-            for (let item of this.trainings)
-                data["trainings"].push(item ? item.toJSON() : undefined as any);
-        }
         return data;
     }
 }
@@ -4610,7 +4565,6 @@ export interface ITrainingTypeDTO {
     image?: string | undefined;
     duration?: number;
     cashbackPercentage?: number;
-    trainings?: TrainingDTO[] | undefined;
 }
 
 export class UserDTO implements IUserDTO {

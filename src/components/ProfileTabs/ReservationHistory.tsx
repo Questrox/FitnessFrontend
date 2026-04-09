@@ -116,7 +116,7 @@ export function ReservationHistory({
             const config = statusConfig[statusKey];
             const training = reservation.training!;
 
-            const startDate = new Date(training.date!);
+            const startDate = new Date(training.startDate!);
             const endMs = new Date(startDate).getTime() + training.trainingType!.duration! * 60 * 1000;
             const endDate = new Date(endMs);
 

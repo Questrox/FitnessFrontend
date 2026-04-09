@@ -13,7 +13,7 @@ import TeamPage from './components/Pages/TeamPage';
 import ProfilePage from './components/Pages/ProfilePage';
 import AdminPage from './components/Pages/AdminPage';
 import { MembershipManagement } from './components/AdminTabs/MembershipManagement';
-import { TrainingTypeManagement } from './components/AdminTabs/TrainingTypeManagements';
+import { TrainingTypeManagement } from './components/AdminTabs/TrainingTypeManagement';
 import { ClientManagement } from './components/AdminTabs/ClientManagement';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -50,7 +50,16 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement, allowedRoles?: st
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru" localeText={{
+        fieldDayPlaceholder: () => "ДД",
+        fieldMonthPlaceholder: () => "ММ",
+        fieldYearPlaceholder: () => "ГГГГ",
+        fieldHoursPlaceholder: () => "чч",
+        fieldMinutesPlaceholder: () => "мм",
+        cancelButtonLabel: "Отмена",
+        okButtonLabel: "ОК",
+        todayButtonLabel: "Сегодня",
+      }}>
         <Layout>
           <Routes>
             <Route path="/" element={<Home/>}/>

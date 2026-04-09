@@ -120,8 +120,7 @@ export function TrainingTypeManagement() {
       cashbackPercentage: parseInt(formData.cashbackPercentage),
       duration: parseInt(formData.duration),
       maxClients: parseInt(formData.maxClients),
-      photoPath: formData.photoPath,
-      trainings: editingTrainingType?.trainings
+      photoPath: formData.photoPath
     }
     if (data.price < 0)
     {
@@ -148,7 +147,7 @@ export function TrainingTypeManagement() {
       const fileParam = image ? { data: image, fileName: image.name } : { data: new Blob(), fileName: "" }; 
       try {
         const updated = await apiClient.updateTrainingType(data.id!, data.id, data.maxClients, data.price, data.name, data.description, 
-          data.photoPath, data.duration, data.cashbackPercentage, data.trainings, fileParam);
+          data.photoPath, data.duration, data.cashbackPercentage, fileParam);
         fetchTypes();
         handleClose();
       } catch (error: any) {
