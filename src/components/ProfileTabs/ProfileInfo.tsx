@@ -6,7 +6,12 @@ import {
   Typography,
   Button,
   GridLegacy,
-  Stack
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  TextField,
+  DialogActions
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import PhoneIcon from "@mui/icons-material/Phone";
@@ -15,16 +20,128 @@ import EditIcon from "@mui/icons-material/Edit";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import { ClientDTO, MembershipDTO } from "../../api/g";
+import { ChangePasswordModel, ClientDTO, LoginResult, MembershipDTO, UserDTO } from "../../api/g";
+import { useState, useEffect } from "react";
+import { apiClient } from "../../api/apiClient";
+import { PhoneRounded } from "@mui/icons-material";
+import { useAuth } from "../../context/AuthContext";
 
 interface Props {
   client: ClientDTO;
-  membership?: MembershipDTO
+  membership?: MembershipDTO;
+  isAdminView: boolean
 }
 
-export function ProfileInfo({ client }: Props) {
-  const currDate = new Date();
-  const membership = client.memberships!.find((m) => m.startDate! <= currDate && m.endDate! >= currDate);
+export function ProfileInfo({ client, membership, isAdminView }: Props) {
+  const { user, updateUserName } = useAuth();
+  const [error, setError] = useState("");
+  const [dialogError, setDialogError] = useState("");
+  const [editData, setEditData] = useState({
+    fullName: client.user!.fullName,
+    userName: client.user!.userName,
+    phoneNumber: client.user!.phoneNumber,
+  });
+  const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
+
+  const [passwordData, setPasswordData] = useState({
+    oldPassword: "",
+    newPassword: "",
+  });
+
+  const [editMode, setEditMode] = useState({
+    fullName: false,
+    userName: false,
+    phoneNumber: false,
+  });
+
+  useEffect(() => {
+    if (client) {
+      setEditData({
+        fullName: client.user!.fullName,
+        userName: client.user!.userName,
+        phoneNumber: client.user!.phoneNumber,
+      });
+    }
+  }, [client]);
+
+  // Проверка наличия изменений
+  const hasChanges =
+    editData.fullName !== client.user!.fullName ||
+    editData.userName !== client.user!.userName ||
+    editData.phoneNumber !== client.user!.phoneNumber;
+
+  const handleSave = async () => {
+    if (!client.user)
+      return;
+    if (!editData.fullName)
+    {
+      setError("ФИО не может быть пустым");
+      return;
+    }
+    if (!editData.phoneNumber)
+    {
+      setError("Номер телефона не может быть пустым");
+      return;
+    }
+    if (!editData.userName)
+    {
+      setError("Логин не может быть пустым");
+      return;
+    }
+    const data = new UserDTO();
+    data.fullName = editData.fullName;
+    data.userName = editData.userName;
+    data.phoneNumber = editData.phoneNumber;
+    data.email = client.user.email;
+    data.id = client.user.id;
+    try {
+      await apiClient.updateUser(client.user!.id!, data);
+      setEditMode({
+        fullName: false,
+        userName: false,
+        phoneNumber: false,
+      });
+      client.user.fullName = editData.fullName;
+      client.user.userName = editData.userName;
+      client.user.phoneNumber = editData.phoneNumber;
+      if (!isAdminView && user!.userName != editData.userName) 
+      {
+        updateUserName(editData.userName);
+      }
+      setError("");
+    } catch (error: any) {
+      const message = error.message.split(": ")[1];
+      setError(message);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const model = new ChangePasswordModel();
+      model.oldPassword = passwordData.oldPassword;
+      model.newPassword = passwordData.newPassword;
+
+      await apiClient.resetPassword(model);
+      handleCloseDialog();
+    } catch (error: any) {
+      //const message = error.message.split(": ")[1];
+      if (error.message.includes("Incorrect password"))
+        setDialogError("Введен неверный старый пароль");
+      else
+        setDialogError("Новый пароль не соответствует требованиям");
+    }
+  };
+
+  const handleCloseDialog = () => {
+    setOpenPasswordDialog(false);
+    setPasswordData({
+      oldPassword: "",
+      newPassword: "",
+    });
+    setDialogError("");
+  }
+
   return (
     <GridLegacy container spacing={4}>
       {/* Личная информация */}
@@ -69,17 +186,34 @@ export function ProfileInfo({ client }: Props) {
                     bgcolor: "action.hover"
                   }}
                 >
-                  <Typography fontWeight={600}>
-                    {client.user!.fullName}
-                  </Typography>
+                  {editMode.fullName ? (
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={editData.fullName}
+                      onChange={(e) =>
+                        setEditData({ ...editData, fullName: e.target.value })
+                      }
+                    />
+                  ) : (
+                    <Typography fontWeight={600}>
+                      {editData.fullName}
+                    </Typography>
+                  )}
 
                   <Button
                     size="small"
                     variant="outlined"
                     startIcon={<EditIcon />}
-                    onClick={() => alert("Редактирование имени")}
+                    sx={{ml: 2, minWidth: 120}}
+                    onClick={() =>
+                      setEditMode((prev) => ({
+                        ...prev,
+                        fullName: !prev.fullName,
+                      }))
+                    }
                   >
-                    Изменить
+                    {editMode.fullName ? "Готово" : "Изменить"}
                   </Button>
                 </Box>
               </Box>
@@ -100,18 +234,36 @@ export function ProfileInfo({ client }: Props) {
                     bgcolor: "action.hover"
                   }}
                 >
-                  <Typography fontWeight={600}>
-                    @{client.user!.userName}
-                  </Typography>
+                  {editMode.userName ? (
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={editData.userName}
+                      onChange={(e) =>
+                        setEditData({ ...editData, userName: e.target.value })
+                      }
+                    />
+                  ) : (
+                    <Typography fontWeight={600}>
+                      @{editData.userName}
+                    </Typography>
+                  )}
 
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    startIcon={<EditIcon />}
-                    onClick={() => alert("Редактирование логина")}
-                  >
-                    Изменить
-                  </Button>
+                  {!isAdminView && <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<EditIcon />}
+                      sx={{ml: 2, minWidth: 120}}
+                      onClick={() =>
+                        setEditMode((prev) => ({
+                          ...prev,
+                          userName: !prev.userName,
+                        }))
+                      }
+                    >
+                      {editMode.userName ? "Готово" : "Изменить"}
+                    </Button>
+                  }
                 </Box>
               </Box>
 
@@ -131,20 +283,37 @@ export function ProfileInfo({ client }: Props) {
                     bgcolor: "action.hover"
                   }}
                 >
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <PhoneIcon color="action" />
-                    <Typography fontWeight={600}>
-                      {client.user!.phoneNumber}
-                    </Typography>
-                  </Stack>
+                  {editMode.phoneNumber ? (
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={editData.phoneNumber}
+                      onChange={(e) =>
+                        setEditData({ ...editData, phoneNumber: e.target.value })
+                      }
+                    />
+                  ) : (
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <PhoneIcon color="action" />
+                      <Typography fontWeight={600}>
+                        {editData.phoneNumber}
+                      </Typography>
+                    </Stack>
+                  )}
 
                   <Button
                     size="small"
                     variant="outlined"
                     startIcon={<EditIcon />}
-                    onClick={() => alert("Редактирование телефона")}
+                    sx={{ml: 2, minWidth: 120}}
+                    onClick={() =>
+                      setEditMode((prev) => ({
+                        ...prev,
+                        phoneNumber: !prev.phoneNumber,
+                      }))
+                    }
                   >
-                    Изменить
+                    {editMode.phoneNumber ? "Готово" : "Изменить"}
                   </Button>
                 </Box>
               </Box>
@@ -171,9 +340,107 @@ export function ProfileInfo({ client }: Props) {
                   </Typography>
                 </Box>
               </Box> */}
+              {error && <Typography color="error" marginTop={1}>{error}</Typography>}
+              {!isAdminView && <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => setOpenPasswordDialog(true)}
+                >
+                  Изменить пароль
+                </Button>
+              }
+              {hasChanges && (
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={handleSave}
+                >
+                  Сохранить изменения
+                </Button>
+              )}
             </Stack>
           </CardContent>
         </Card>
+        <Dialog
+          open={openPasswordDialog}
+          onClose={handleCloseDialog}
+          maxWidth="sm"
+          fullWidth
+          component="form"
+          onSubmit={handleChangePassword} 
+          id="passwordResetForm"
+        >
+          <DialogTitle>Изменение пароля</DialogTitle>
+
+          <DialogContent>
+            <Stack spacing={2} mt={1}>
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  Пароль должен соответствовать следующим требованиям:
+                </Typography>
+
+                <Typography variant="body2">
+                  • Длина пароля должна быть не менее 6 символов
+                </Typography>
+                <Typography variant="body2">
+                  • Пароль должен содержать только символы латинского алфавита
+                </Typography>
+                <Typography variant="body2">
+                  • Пароль не должен содержать пробелов
+                </Typography>
+                <Typography variant="body2">
+                  • Пароль должен содержать как минимум 1 заглавную букву
+                </Typography>
+                <Typography variant="body2">
+                  • Пароль должен содержать как минимум 1 строчную букву
+                </Typography>
+                <Typography variant="body2">
+                  • Пароль должен содержать как минимум 1 цифру
+                </Typography>
+                <Typography variant="body2">
+                  • Пароль должен содержать как минимум 1 спецсимвол
+                </Typography>
+              </Box>
+              <TextField
+                label="Старый пароль"
+                type="password"
+                value={passwordData.oldPassword}
+                onChange={(e) =>
+                  setPasswordData({ ...passwordData, oldPassword: e.target.value })
+                }
+                fullWidth
+                required
+              />
+
+              <TextField
+                label="Новый пароль"
+                type="password"
+                value={passwordData.newPassword}
+                onChange={(e) =>
+                  setPasswordData({ ...passwordData, newPassword: e.target.value })
+                }
+                fullWidth
+                required
+              />
+              {dialogError && <Typography color="error" marginTop={1}>{dialogError}</Typography>}
+            </Stack>
+          </DialogContent>
+
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>
+              Отмена
+            </Button>
+
+            <Button
+              variant="contained"
+              onSubmit={handleChangePassword} 
+              type="submit" 
+              form="passwordResetForm"
+            >
+              Сохранить
+            </Button>
+          </DialogActions>
+        </Dialog>
       </GridLegacy>
 
       {/* Абонемент */}

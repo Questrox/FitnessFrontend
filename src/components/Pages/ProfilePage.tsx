@@ -83,7 +83,6 @@ const ProfilePage = () => {
         const diffDays = Math.floor(Math.abs(currMembership!.endDate!.getTime() - currDate.getTime()) / (1000 * 60 * 60 * 24));
         setDaysUntilExpiration(diffDays);
       }
-      console.log(client);
     } catch (error) {
       console.error("Ошибка при загрузке клиента:", error)
     }
@@ -198,7 +197,7 @@ const ProfilePage = () => {
         </Tabs>
 
         {/* Content */}
-        {activeTab === "profile" && <ProfileInfo client={client} membership={currentMembership} />}
+        {activeTab === "profile" && <ProfileInfo client={client} membership={currentMembership} isAdminView={id != null && id != undefined} />}
         {activeTab === "memberships" && <MembershipHistory memberships={client.memberships!} />}
         {activeTab === "classes" && <ReservationHistory reservations={filteredReservations!} 
                                                         hideCancelled={hideCancelledClasses} 

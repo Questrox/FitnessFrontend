@@ -6,6 +6,8 @@ interface AuthContextType {
   user: LoginResult | null
   // Данные авторизованного пользователя или `null`, если пользователь не авторизован.
 
+  updateUserName: (userName: string) => void
+
   login: (userName: string, password: string) => Promise<void>
   // Функция для выполнения входа. Возвращает промис.
 
@@ -56,6 +58,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [])
   // Пустой массив зависимостей (`[]`) означает, что этот эффект выполнится только один раз — при монтировании компонента.
 
+  const updateUserName = (userName: string) => { // Функция для обновления логина
+    if (!user) return;
+
+    const userData = new LoginResult();
+    userData.token = user?.token;
+    userData.userRole = user?.userRole;
+    userData.userName = userName;
+    setUser(userData);
+
+    localStorage.setItem("user", JSON.stringify(userData));
+  };
+
   const login = async (userName: string, password: string) => {
     try {
       // Функция входа в систему. Отправляет данные на сервер и сохраняет ответ.
@@ -91,7 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, userRole, isLoading }}>
+    <AuthContext.Provider value={{ user, updateUserName, login, logout, userRole, isLoading }}>
       {/* Передаем данные о пользователе и методы авторизации в контекст. */}
       {children}
     </AuthContext.Provider>
