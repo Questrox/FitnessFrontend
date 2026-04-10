@@ -708,6 +708,60 @@ export class ApiClient {
     }
 
     /**
+     * @param start (optional) 
+     * @param end (optional) 
+     * @return OK
+     */
+    getAvailableCoaches(start: Date | undefined, end: Date | undefined): Promise<CoachDTO[]> {
+        let url_ = this.baseUrl + "/api/Coach/GetAvailableCoaches?";
+        if (start === null)
+            throw new globalThis.Error("The parameter 'start' cannot be null.");
+        else if (start !== undefined)
+            url_ += "start=" + encodeURIComponent(start ? "" + start.toISOString() : "") + "&";
+        if (end === null)
+            throw new globalThis.Error("The parameter 'end' cannot be null.");
+        else if (end !== undefined)
+            url_ += "end=" + encodeURIComponent(end ? "" + end.toISOString() : "") + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAvailableCoaches(_response);
+        });
+    }
+
+    protected processGetAvailableCoaches(response: Response): Promise<CoachDTO[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(CoachDTO.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CoachDTO[]>(null as any);
+    }
+
+    /**
      * @return OK
      */
     getCoachById(id: number): Promise<CoachDTO> {

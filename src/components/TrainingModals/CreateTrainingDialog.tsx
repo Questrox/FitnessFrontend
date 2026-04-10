@@ -38,8 +38,11 @@ export function CreateTrainingDialog({
 
   useEffect(() => {
     (async () => {
+      if (startDateTime == null || endDateTime == null || trainingType == null)
+        return;
       try {
-        const coaches = await apiClient.getCoaches(); // ЗАМЕНИТЬ НА ОТДЕЛЬНЫЙ МЕТОД И ВЫЗЫВАТЬ ПРИ КАЖДОМ ИЗМЕНЕНИИ ДАТЫ ИЛИ ЧЕГО-ТО ТАКОГО
+        setCoach(null);
+        const coaches = await apiClient.getAvailableCoaches(startDateTime?.toDate(), endDateTime?.toDate());
         setAvailableCoaches(coaches);
       }
       catch (error)
@@ -48,7 +51,7 @@ export function CreateTrainingDialog({
       }
     })();
     setIsLoading(false);
-  }, [])
+  }, [startDateTime, trainingType])
 
   useEffect(() => {
     setTrainingType(null);
@@ -64,7 +67,7 @@ export function CreateTrainingDialog({
 
   // Конец
   const endDateTime = startDateTime
-    ? startDateTime.add(trainingType ? trainingType.duration! : 2, "minute")
+    ? startDateTime.add(trainingType ? trainingType.duration! : 0, "minute")
     : null;
 
   const handleClose = () => {
@@ -88,7 +91,7 @@ export function CreateTrainingDialog({
     }
     catch (error: any)
     {
-        setError(error.message);
+      setError(error.message);
     }
   };
 
@@ -116,12 +119,41 @@ export function CreateTrainingDialog({
           {/* Тренер */}
           <Autocomplete
             options={availableCoaches}
+            disabled={availableCoaches.length === 0 || startDateTime === null}
+            noOptionsText={"Нет совпадений"}
             getOptionLabel={(option) => option.user!.fullName!}
             value={coach}
             onChange={(_, value) => setCoach(value)}
-            renderInput={(params) => (
-              <TextField {...params} label="Тренер" />
-            )}
+            renderInput={(params) => {
+              // определяем текущий стейт
+              const isSelecting = startDateTime == null || trainingType == null;
+              const noCoachesAvailable = availableCoaches.length === 0;
+
+              let label: string;
+              let error: boolean;
+
+              if (isSelecting) {
+                // Пользователь не выбрал дату или тип тренировки
+                label = "Выберите дату и тип тренировки";
+                error = false;
+              } else if (!isSelecting && noCoachesAvailable) {
+                // Все выбрано, но свободных тренеров нет
+                label = "Нет свободных тренеров";
+                error = true;
+              } else {
+                // Нормальное состояние
+                label = "Тренер";
+                error = false;
+              }
+
+              return (
+                <TextField
+                  {...params}
+                  label={label}
+                  error={error}
+                />
+              );
+            }}
           />
 
           {/* Дата и время начала */}

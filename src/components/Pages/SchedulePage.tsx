@@ -19,7 +19,7 @@ import { apiClient } from "../../api/apiClient";
 import { CreateTrainingDialog } from "../TrainingModals/CreateTrainingDialog";
 
 export function SchedulePage() {
-  const [selectedDay, setSelectedDay] = useState("Понедельник");
+  const [selectedDay, setSelectedDay] = useState("");
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [trainingTypes, setTrainingTypes] = useState<TrainingTypeDTO[]>([]);
   const [trainings, setTrainings] = useState<TrainingDTO[]>([]);
@@ -41,6 +41,8 @@ export function SchedulePage() {
 
   useEffect(() => {
     (async () => {
+      // Вычисляем текущий день, т.к. getDay возвращает число от 0 до 6, где 0 - воскресенье, 1 - понедельник и т.д.
+      setSelectedDay(daysOfWeek[(new Date().getDay() + 6) % 7]);
       try {
         const types = await apiClient.getTrainingTypes();
         setTrainingTypes(types);
@@ -62,6 +64,7 @@ export function SchedulePage() {
     setIsLoading(true);
     try {
       const today = new Date();
+      today.setHours(0, 0, 0, 0);
       const currentDay = today.getDay();
 
       const monday = new Date(today);
@@ -70,8 +73,10 @@ export function SchedulePage() {
       const sunday = new Date(monday);
       sunday.setDate(monday.getDate() + 6);
       const weekTrainings = await apiClient.getTrainingsForPeriod(monday, sunday);
-      console.log(weekTrainings[0].startDate);
+      //console.log(weekTrainings[0].startDate);
       setTrainings(weekTrainings);
+      // console.log(monday)
+      // console.log(sunday)
     }
     catch (error)
     {
@@ -83,6 +88,7 @@ export function SchedulePage() {
   const onCreateSuccess = async (startDate: Date) =>
   {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const currentDay = today.getDay();
 
     const monday = new Date(today);
@@ -90,9 +96,12 @@ export function SchedulePage() {
 
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
+    // console.log(monday)
+    // console.log(sunday)
 
+    startDate.setHours(0, 0, 0, 0);
     if (startDate >= monday && startDate <= sunday)
-        await fetchWeekTrainings();
+      await fetchWeekTrainings();
   }
 
   const getWeekDateRange = (weekOffset: number) => {
@@ -110,19 +119,14 @@ export function SchedulePage() {
 
   const getTrainingsForDayAndTime = (day: string, time: string) => {
     return trainings.filter((training) => {
-        const start = new Date(training.startDate!);
-        const end = new Date(training.endDate!);
+      const start = new Date(training.startDate!);
 
-        const trainingDay = start.toLocaleDateString("ru-RU", { weekday: "long" });
-        if (trainingDay.toLowerCase() !== day.toLowerCase()) {
-            // console.log("День тренировки: " + trainingDay);
-            // console.log("Выбранный день: " + day);
-            return false;
-        }
+      const trainingDay = start.toLocaleDateString("ru-RU", { weekday: "long" });
+      if (trainingDay.toLowerCase() !== day.toLowerCase()) return false;
 
-        const timeHour = parseInt(time.split(":")[0]);
+      const timeHour = parseInt(time.split(":")[0]);
 
-        return timeHour >= start.getHours() && timeHour < end.getHours();
+      return start.getHours() === timeHour;
     });
   };
 
@@ -130,9 +134,6 @@ export function SchedulePage() {
     setSelectedTraining(training);
     setModalOpen(true);
   };
-
-  if (isLoading)
-    return <CircularProgress/>
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: 6 }}>
@@ -175,7 +176,7 @@ export function SchedulePage() {
                 <Typography variant="body2" color="text.secondary">
                   {selectedWeek === 0
                     ? "Текущая неделя"
-                    : `Смещение: ${selectedWeek}`}
+                    : `${Math.abs(selectedWeek)} нед. ${selectedWeek > 0 ? "вперед" : "назад"}`}
                 </Typography>
                 <Typography fontWeight={600}>
                   {getWeekDateRange(selectedWeek)}
@@ -203,70 +204,78 @@ export function SchedulePage() {
         </Stack>
 
         {/* Schedule */}
-        <Stack spacing={3}>
-          {timeSlots.map((time) => {
-            const dayTrainings = getTrainingsForDayAndTime(selectedDay, time);
+        {isLoading ? <CircularProgress/> : 
+          <Stack spacing={3}>
+            {timeSlots.map((time) => {
+              const dayTrainings = getTrainingsForDayAndTime(selectedDay, time);
 
-            if (dayTrainings.length === 0) return null;
+              if (dayTrainings.length === 0) return null;
 
-            return (
-              <Stack key={time} direction="row" spacing={2}>
-                {/* Time */}
-                <Box sx={{ width: 80 }}>
-                  <Typography fontWeight={600}>{time}</Typography>
-                </Box>
+              return (
+                <Stack key={time} direction="row" spacing={2}>
+                  {/* Time */}
+                  <Box sx={{ width: 80 }}>
+                    <Typography fontWeight={600}>{time}</Typography>
+                  </Box>
 
-                {/* Trainings */}
-                <GridLegacy container spacing={2}>
-                  {dayTrainings.map((training) => {
-                    const type = training.trainingType!;
-                    const coach = training.coach!;
+                  {/* Trainings */}
+                  <GridLegacy container spacing={2}>
+                    {dayTrainings.map((training) => {
+                      const type = training.trainingType!;
+                      const coach = training.coach!;
 
-                    if (!type || !coach) return null;
+                      const start = new Date(training.startDate!);
+                      const timeLabel = start.toLocaleTimeString("ru-RU", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
 
-                    const spotsLeft = type.maxClients! - training!.trainingReservations!.length;
-                    const isFull = spotsLeft <= 0;
+                      if (!type || !coach) return null;
 
-                    return (
-                      <GridLegacy item xs={12} md={6} lg={4} key={training.id}>
-                        <Card
-                          sx={{ cursor: "pointer", "&:hover": { boxShadow: 4 } }}
-                          onClick={() => handleTrainingClick(training)}
-                        >
-                          <CardContent>
-                            <Typography fontWeight={600}>
-                              {type.name}
-                            </Typography>
+                      const spotsLeft = type.maxClients! - training!.trainingReservations!.length;
+                      const isFull = spotsLeft <= 0;
 
-                            <Typography variant="body2" color="text.secondary">
-                              {coach.user?.fullName}
-                            </Typography>
-
-                            <Stack
-                              direction="row"
-                              justifyContent="space-between"
-                              sx={{ mt: 2 }}
-                            >
-                              <Typography variant="body2">
-                                {isFull
-                                  ? "Нет мест"
-                                  : `${spotsLeft} мест`}
-                              </Typography>
-
+                      return (
+                        <GridLegacy item xs={12} md={6} lg={4} key={training.id}>
+                          <Card
+                            sx={{ cursor: "pointer", "&:hover": { boxShadow: 4 } }}
+                            onClick={() => handleTrainingClick(training)}
+                          >
+                            <CardContent>
                               <Typography fontWeight={600}>
-                                ${type.price}
+                                {type.name}
                               </Typography>
-                            </Stack>
-                          </CardContent>
-                        </Card>
-                      </GridLegacy>
-                    );
-                  })}
-                </GridLegacy>
-              </Stack>
-            );
-          })}
-        </Stack>
+
+                              <Typography variant="body2" color="text.secondary">
+                                {timeLabel}
+                              </Typography>
+
+                              <Stack
+                                direction="row"
+                                justifyContent="space-between"
+                                sx={{ mt: 2 }}
+                              >
+                                <Typography variant="body2">
+                                  {isFull
+                                    ? "Нет мест"
+                                    : `Осталось мест: ${spotsLeft}`}
+                                </Typography>
+
+                                <Typography fontWeight={600}>
+                                  {type.price! > 0 ? `${type.price} ₽` : "Бесплатная"}
+                                </Typography>
+                              </Stack>
+                            </CardContent>
+                          </Card>
+                        </GridLegacy>
+                      );
+                    })}
+                  </GridLegacy>
+                </Stack>
+              );
+            })}
+          </Stack>
+        }
 
       </Container>
       <CreateTrainingDialog

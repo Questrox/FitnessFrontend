@@ -44,19 +44,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(parsedUser)
         setUserRole(parsedUser.userRole!)
 
-        try {
-          apiClient.validate();
-        } catch (error) {
-          localStorage.removeItem(tokenKey);
-          localStorage.removeItem("user")
-          setUser(null)
-          setUserRole("")
-        }
+        validate();
       }
     }
     setIsLoading(false)
   }, [])
   // Пустой массив зависимостей (`[]`) означает, что этот эффект выполнится только один раз — при монтировании компонента.
+
+  const validate = async () => {
+    try {
+      await apiClient.validate();
+    } catch (error) {
+      localStorage.removeItem(tokenKey);
+      localStorage.removeItem("user");
+      setUser(null);
+      setUserRole("");
+    }
+  }
 
   const updateUserName = (userName: string) => { // Функция для обновления логина
     if (!user) return;
