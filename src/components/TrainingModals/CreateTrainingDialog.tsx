@@ -38,10 +38,10 @@ export function CreateTrainingDialog({
 
   useEffect(() => {
     (async () => {
+      setCoach(null);
       if (startDateTime == null || endDateTime == null || trainingType == null)
         return;
       try {
-        setCoach(null);
         const coaches = await apiClient.getAvailableCoaches(startDateTime?.toDate(), endDateTime?.toDate());
         setAvailableCoaches(coaches);
       }
@@ -79,6 +79,11 @@ export function CreateTrainingDialog({
   };
 
   const handleCreate = async () => {
+    if (startDateTime! < dayjs())
+    {
+      setError("Нельзя создать тренировку ранее текущей даты и времени");
+      return;
+    }
     try
     {
         const training = new CreateTrainingDTO();
@@ -119,7 +124,7 @@ export function CreateTrainingDialog({
           {/* Тренер */}
           <Autocomplete
             options={availableCoaches}
-            disabled={availableCoaches.length === 0 || startDateTime === null}
+            disabled={availableCoaches.length === 0 || startDateTime === null || trainingType === null}
             noOptionsText={"Нет совпадений"}
             getOptionLabel={(option) => option.user!.fullName!}
             value={coach}
@@ -159,6 +164,7 @@ export function CreateTrainingDialog({
           {/* Дата и время начала */}
           <DateTimePicker
             label="Дата и время начала"
+            minDateTime={dayjs()}
             value={startDateTime}
             onChange={(newValue) => setStartDateTime(newValue)}
             slotProps={{

@@ -15,7 +15,7 @@ import {
 import PersonIcon from "@mui/icons-material/Person";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
-import { ClientDTO, MembershipDTO, MembershipTypeDTO } from "../../api/g";
+import { ClientDTO, MembershipDTO, MembershipTypeDTO, TrainingReservationDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
 import { useParams, useSearchParams } from "react-router-dom";
 import { ProfileInfo } from "../ProfileTabs/ProfileInfo";
@@ -89,11 +89,25 @@ const ProfilePage = () => {
     setIsLoading(false);
   }
 
-  const filteredReservations = client?.trainingReservations!.filter((tr) => {
-    if (hideCancelledClasses && tr.reservationStatus!.name === "Отменена") return false;
-    if (hidePaidClasses && tr.reservationStatus!.name === "Оплачена") return false;
-    return true;
-  });
+  const handleCancelReservation = (
+    reservationId: number,
+    updatedReservation: TrainingReservationDTO
+  ) => {
+    
+    const updatedReservations = client!.trainingReservations!.map((tr) =>
+        tr.id === reservationId ? updatedReservation : tr
+      );
+    const newClient = new ClientDTO();
+    newClient.bonuses = client?.bonuses;
+    newClient.cancellationNotifications = client?.cancellationNotifications;
+    newClient.id = client?.id;
+    newClient.memberships = client?.memberships;
+    newClient.user = client?.user;
+    newClient.userId = client?.userId;
+    newClient.trainingReservations = updatedReservations;
+    
+    setClient(newClient);
+  };
 
   const handleGenerateCredentials = () => {
     alert("Генерация данных для входа будет реализована здесь");
@@ -199,7 +213,8 @@ const ProfilePage = () => {
         {/* Content */}
         {activeTab === "profile" && <ProfileInfo client={client} membership={currentMembership} isAdminView={id != null && id != undefined} />}
         {activeTab === "memberships" && <MembershipHistory memberships={client.memberships!} />}
-        {activeTab === "classes" && <ReservationHistory reservations={filteredReservations!} 
+        {activeTab === "classes" && <ReservationHistory reservationsList={client.trainingReservations!}
+                                                        onCancel={handleCancelReservation} 
                                                         hideCancelled={hideCancelledClasses} 
                                                         setHideCancelled={setHideCancelledClasses}
                                                         hidePaid={hidePaidClasses}

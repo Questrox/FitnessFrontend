@@ -18,9 +18,11 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import PersonIcon from "@mui/icons-material/Person";
 import { TrainingReservationDTO } from "../../api/g";
+import { apiClient } from "../../api/apiClient";
 
 interface ReservationHistoryProps {
-  reservations: TrainingReservationDTO[];
+  reservationsList: TrainingReservationDTO[];
+  onCancel: (reservationId: number, updatedReservation: TrainingReservationDTO) => void;
   hideCancelled: boolean;
   setHideCancelled: (value: boolean) => void;
   hidePaid: boolean;
@@ -28,7 +30,8 @@ interface ReservationHistoryProps {
 }
 
 export function ReservationHistory({
-  reservations,
+  reservationsList,
+  onCancel,
   hideCancelled,
   setHideCancelled,
   hidePaid,
@@ -61,6 +64,25 @@ export function ReservationHistory({
   } as const;
 
   type LabelKey = keyof typeof statusLabels;
+
+  const reservations = reservationsList.filter((tr) => {
+    if (hideCancelled && tr.reservationStatus!.name === "Отменена") return false;
+    if (hidePaid && tr.reservationStatus!.name === "Оплачена") return false;
+    return true;
+  });
+
+  const handleCancel = async (id: number) => {
+    if (window.confirm(`Вы действительно хотите отменить эту запись?`)) {
+      try {
+        const result = await apiClient.cancelReservation(id);
+        onCancel(id, result);
+      }
+      catch (error)
+      {
+        console.error("Ошибка при отмене записи " + error);
+      }
+    }
+  }
 
   return (
     <Box>
@@ -120,7 +142,8 @@ export function ReservationHistory({
             const endMs = new Date(startDate).getTime() + training.trainingType!.duration! * 60 * 1000;
             const endDate = new Date(endMs);
 
-            const dayOfWeek = startDate.toLocaleDateString("ru", { weekday: "long" }); // например, "понедельник"
+            const weekDay = startDate.toLocaleDateString("ru", { weekday: "long" }); // например, "понедельник"
+            const dayOfWeek = weekDay.charAt(0).toUpperCase() + weekDay.slice(1);
             const dateOnly = startDate.toLocaleDateString("ru"); // например, "01.04.2026"
             const startTime = startDate.toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" }); // "19:00"
             const endTime = endDate.toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" }); // "20:00"
@@ -157,33 +180,37 @@ export function ReservationHistory({
                           variant={"filled"}
                         />
                       </Box>
-
-                      <Typography variant="h6" fontWeight={700} color="primary">
-                        ${reservation.payment?.price}
-                      </Typography>
                     </Box>
 
                     {/* Info */}
-                    <Stack direction="row" spacing={1} alignItems="center">
+                    <Stack direction="column" spacing={1} alignItems="left">
+                      <Stack direction="row" spacing={1} alignItems="center">
                         <CalendarTodayIcon fontSize="small" color="action" />
                         <Typography fontWeight={600}>
-                            {dayOfWeek}
-                        </Typography>
-                        <Typography color="text.secondary">
                             {dateOnly}
                         </Typography>
-                        </Stack>
+                        <Typography color="text.secondary">
+                            ({dayOfWeek})
+                        </Typography>
+                      </Stack>
 
-                        <Stack direction="row" spacing={1} alignItems="center">
+                      <Stack direction="row" spacing={1} alignItems="center">
                         <AccessTimeIcon fontSize="small" color="action" />
                         <Typography color="text.secondary">
                             {startTime} – {endTime}
                         </Typography>
+                      </Stack>
 
                       <Stack direction="row" spacing={1} alignItems="center">
                         <PersonIcon fontSize="small" color="action" />
                         <Typography color="text.secondary">
                           Тренер: {training.coach!.user!.fullName}
+                        </Typography>
+                      </Stack>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <PersonIcon fontSize="small" color="action" />
+                        <Typography color="text.secondary">
+                          Цена: {training.price} ₽
                         </Typography>
                       </Stack>
                     </Stack>
@@ -210,11 +237,7 @@ export function ReservationHistory({
                           fullWidth
                           variant="outlined"
                           color="error"
-                          onClick={() =>
-                            alert(
-                              "Функционал отмены бронирования будет реализован здесь"
-                            )
-                          }
+                          onClick={() => handleCancel(reservation.id!)}
                           startIcon={<CancelIcon />}
                         >
                           Отменить запись

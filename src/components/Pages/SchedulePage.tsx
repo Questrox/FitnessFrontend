@@ -9,7 +9,8 @@ import {
   Stack,
   IconButton,
   GridLegacy,
-  CircularProgress
+  CircularProgress,
+  Divider
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -17,6 +18,8 @@ import AddIcon from "@mui/icons-material/Add";
 import { CoachDTO, TrainingDTO, TrainingTypeDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
 import { CreateTrainingDialog } from "../TrainingModals/CreateTrainingDialog";
+import { useAuth } from "../../context/AuthContext";
+import { TrainingDetails } from "../TrainingModals/TrainingDetails";
 
 export function SchedulePage() {
   const [selectedDay, setSelectedDay] = useState("");
@@ -26,7 +29,9 @@ export function SchedulePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [selectedTraining, setSelectedTraining] = useState<any>(null);
+  const [selectedTraining, setSelectedTraining] = useState<TrainingDTO | null>(null);
+
+  const { userRole } = useAuth();
 
   const daysOfWeek = [
     "Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"
@@ -130,7 +135,7 @@ export function SchedulePage() {
     });
   };
 
-  const handleTrainingClick = (training: any) => {
+  const handleTrainingClick = (training: TrainingDTO) => {
     setSelectedTraining(training);
     setModalOpen(true);
   };
@@ -155,13 +160,15 @@ export function SchedulePage() {
             </Typography>
           </Box>
 
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setCreateDialogOpen(true)}
-          >
-            Создать тренировку
-          </Button>
+          {userRole !== "User" && userRole && 
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setCreateDialogOpen(true)}
+            >
+              Создать тренировку
+            </Button>
+          }
         </Stack>
 
         {/* Week selector */}
@@ -232,7 +239,7 @@ export function SchedulePage() {
 
                       if (!type || !coach) return null;
 
-                      const spotsLeft = type.maxClients! - training!.trainingReservations!.length;
+                      const spotsLeft = type.maxClients! - training!.reservationsCount!;
                       const isFull = spotsLeft <= 0;
 
                       return (
@@ -246,10 +253,12 @@ export function SchedulePage() {
                                 {type.name}
                               </Typography>
 
-                              <Typography variant="body2" color="text.secondary">
+                              <Typography variant="body2" color="text.secondary" sx={{mb: 2}}>
                                 {timeLabel}
                               </Typography>
 
+                              <Divider />
+                              
                               <Stack
                                 direction="row"
                                 justifyContent="space-between"
@@ -258,7 +267,7 @@ export function SchedulePage() {
                                 <Typography variant="body2">
                                   {isFull
                                     ? "Нет мест"
-                                    : `Осталось мест: ${spotsLeft}`}
+                                    : `${spotsLeft} ${spotsLeft === 1 ? "место" : "мест"}`}
                                 </Typography>
 
                                 <Typography fontWeight={600}>
@@ -283,6 +292,13 @@ export function SchedulePage() {
         onClose={() => setCreateDialogOpen(false)}
         trainingTypes={trainingTypes}
         onSuccess={onCreateSuccess}
+      />
+      <TrainingDetails
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        training={selectedTraining}
+        setTraining={setSelectedTraining}
+        onSuccess={fetchWeekTrainings}
       />
     </Box>
   );

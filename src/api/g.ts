@@ -2361,6 +2361,54 @@ export class ApiClient {
     }
 
     /**
+     * @param trainingId (optional) 
+     * @param clientId (optional) 
+     * @return OK
+     */
+    checkReservationPossibility(trainingId: number | undefined, clientId: number | undefined): Promise<string> {
+        let url_ = this.baseUrl + "/api/Training/CheckReservationPossibility?";
+        if (trainingId === null)
+            throw new globalThis.Error("The parameter 'trainingId' cannot be null.");
+        else if (trainingId !== undefined)
+            url_ += "trainingId=" + encodeURIComponent("" + trainingId) + "&";
+        if (clientId === null)
+            throw new globalThis.Error("The parameter 'clientId' cannot be null.");
+        else if (clientId !== undefined)
+            url_ += "clientId=" + encodeURIComponent("" + clientId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCheckReservationPossibility(_response);
+        });
+    }
+
+    protected processCheckReservationPossibility(response: Response): Promise<string> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : null as any;
+    
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string>(null as any);
+    }
+
+    /**
      * @param start (optional) 
      * @param end (optional) 
      * @return OK
@@ -2770,6 +2818,46 @@ export class ApiClient {
     }
 
     protected processUpdateReservation(response: Response): Promise<TrainingReservationDTO> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = TrainingReservationDTO.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TrainingReservationDTO>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    cancelReservation(id: number): Promise<TrainingReservationDTO> {
+        let url_ = this.baseUrl + "/api/TrainingReservation/CancelReservation/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "PUT",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCancelReservation(_response);
+        });
+    }
+
+    protected processCancelReservation(response: Response): Promise<TrainingReservationDTO> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3473,7 +3561,6 @@ export class CoachScheduleDTO implements ICoachScheduleDTO {
     startTime?: string;
     endTime?: string;
     coachId?: number;
-    coach?: CoachDTO;
 
     constructor(data?: ICoachScheduleDTO) {
         if (data) {
@@ -3491,7 +3578,6 @@ export class CoachScheduleDTO implements ICoachScheduleDTO {
             this.startTime = _data["startTime"];
             this.endTime = _data["endTime"];
             this.coachId = _data["coachId"];
-            this.coach = _data["coach"] ? CoachDTO.fromJS(_data["coach"]) : undefined as any;
         }
     }
 
@@ -3509,7 +3595,6 @@ export class CoachScheduleDTO implements ICoachScheduleDTO {
         data["startTime"] = this.startTime;
         data["endTime"] = this.endTime;
         data["coachId"] = this.coachId;
-        data["coach"] = this.coach ? this.coach.toJSON() : undefined as any;
         return data;
     }
 }
@@ -3520,7 +3605,6 @@ export interface ICoachScheduleDTO {
     startTime?: string;
     endTime?: string;
     coachId?: number;
-    coach?: CoachDTO;
 }
 
 export class CreateCancellationNotificationDTO implements ICreateCancellationNotificationDTO {
@@ -3908,7 +3992,7 @@ export interface ICreateTrainingDTO {
 }
 
 export class CreateTrainingReservationDTO implements ICreateTrainingReservationDTO {
-    clientId?: number;
+    clientId?: number | undefined;
     trainingId?: number;
 
     constructor(data?: ICreateTrainingReservationDTO) {
@@ -3943,7 +4027,7 @@ export class CreateTrainingReservationDTO implements ICreateTrainingReservationD
 }
 
 export interface ICreateTrainingReservationDTO {
-    clientId?: number;
+    clientId?: number | undefined;
     trainingId?: number;
 }
 
@@ -4207,7 +4291,6 @@ export class PaymentDTO implements IPaymentDTO {
     price?: number;
     cashbackPercentage?: number;
     paidWithBonuses?: number;
-    trainingReservation?: TrainingReservationDTO;
 
     constructor(data?: IPaymentDTO) {
         if (data) {
@@ -4225,7 +4308,6 @@ export class PaymentDTO implements IPaymentDTO {
             this.price = _data["price"];
             this.cashbackPercentage = _data["cashbackPercentage"];
             this.paidWithBonuses = _data["paidWithBonuses"];
-            this.trainingReservation = _data["trainingReservation"] ? TrainingReservationDTO.fromJS(_data["trainingReservation"]) : undefined as any;
         }
     }
 
@@ -4243,7 +4325,6 @@ export class PaymentDTO implements IPaymentDTO {
         data["price"] = this.price;
         data["cashbackPercentage"] = this.cashbackPercentage;
         data["paidWithBonuses"] = this.paidWithBonuses;
-        data["trainingReservation"] = this.trainingReservation ? this.trainingReservation.toJSON() : undefined as any;
         return data;
     }
 }
@@ -4254,7 +4335,6 @@ export interface IPaymentDTO {
     price?: number;
     cashbackPercentage?: number;
     paidWithBonuses?: number;
-    trainingReservation?: TrainingReservationDTO;
 }
 
 export class RegisterModel implements IRegisterModel {
@@ -4308,7 +4388,6 @@ export interface IRegisterModel {
 export class ReservationStatusDTO implements IReservationStatusDTO {
     id?: number;
     name?: string | undefined;
-    trainingReservations?: TrainingReservationDTO[] | undefined;
 
     constructor(data?: IReservationStatusDTO) {
         if (data) {
@@ -4323,11 +4402,6 @@ export class ReservationStatusDTO implements IReservationStatusDTO {
         if (_data) {
             this.id = _data["id"];
             this.name = _data["name"];
-            if (Array.isArray(_data["trainingReservations"])) {
-                this.trainingReservations = [] as any;
-                for (let item of _data["trainingReservations"])
-                    this.trainingReservations!.push(TrainingReservationDTO.fromJS(item));
-            }
         }
     }
 
@@ -4342,11 +4416,6 @@ export class ReservationStatusDTO implements IReservationStatusDTO {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id;
         data["name"] = this.name;
-        if (Array.isArray(this.trainingReservations)) {
-            data["trainingReservations"] = [];
-            for (let item of this.trainingReservations)
-                data["trainingReservations"].push(item ? item.toJSON() : undefined as any);
-        }
         return data;
     }
 }
@@ -4354,7 +4423,6 @@ export class ReservationStatusDTO implements IReservationStatusDTO {
 export interface IReservationStatusDTO {
     id?: number;
     name?: string | undefined;
-    trainingReservations?: TrainingReservationDTO[] | undefined;
 }
 
 export class TrainingDTO implements ITrainingDTO {
@@ -4366,10 +4434,10 @@ export class TrainingDTO implements ITrainingDTO {
     coachId?: number;
     trainingTypeId?: number;
     trainingStatusId?: number;
+    reservationsCount?: number;
     coach?: CoachDTO;
     trainingType?: TrainingTypeDTO;
     trainingStatus?: TrainingStatusDTO;
-    trainingReservations?: TrainingReservationDTO[] | undefined;
 
     constructor(data?: ITrainingDTO) {
         if (data) {
@@ -4390,14 +4458,10 @@ export class TrainingDTO implements ITrainingDTO {
             this.coachId = _data["coachId"];
             this.trainingTypeId = _data["trainingTypeId"];
             this.trainingStatusId = _data["trainingStatusId"];
+            this.reservationsCount = _data["reservationsCount"];
             this.coach = _data["coach"] ? CoachDTO.fromJS(_data["coach"]) : undefined as any;
             this.trainingType = _data["trainingType"] ? TrainingTypeDTO.fromJS(_data["trainingType"]) : undefined as any;
             this.trainingStatus = _data["trainingStatus"] ? TrainingStatusDTO.fromJS(_data["trainingStatus"]) : undefined as any;
-            if (Array.isArray(_data["trainingReservations"])) {
-                this.trainingReservations = [] as any;
-                for (let item of _data["trainingReservations"])
-                    this.trainingReservations!.push(TrainingReservationDTO.fromJS(item));
-            }
         }
     }
 
@@ -4418,14 +4482,10 @@ export class TrainingDTO implements ITrainingDTO {
         data["coachId"] = this.coachId;
         data["trainingTypeId"] = this.trainingTypeId;
         data["trainingStatusId"] = this.trainingStatusId;
+        data["reservationsCount"] = this.reservationsCount;
         data["coach"] = this.coach ? this.coach.toJSON() : undefined as any;
         data["trainingType"] = this.trainingType ? this.trainingType.toJSON() : undefined as any;
         data["trainingStatus"] = this.trainingStatus ? this.trainingStatus.toJSON() : undefined as any;
-        if (Array.isArray(this.trainingReservations)) {
-            data["trainingReservations"] = [];
-            for (let item of this.trainingReservations)
-                data["trainingReservations"].push(item ? item.toJSON() : undefined as any);
-        }
         return data;
     }
 }
@@ -4439,19 +4499,18 @@ export interface ITrainingDTO {
     coachId?: number;
     trainingTypeId?: number;
     trainingStatusId?: number;
+    reservationsCount?: number;
     coach?: CoachDTO;
     trainingType?: TrainingTypeDTO;
     trainingStatus?: TrainingStatusDTO;
-    trainingReservations?: TrainingReservationDTO[] | undefined;
 }
 
 export class TrainingReservationDTO implements ITrainingReservationDTO {
     id?: number;
     clientId?: number;
     trainingId?: number;
-    paymentId?: number;
+    paymentId?: number | undefined;
     reservationStatusId?: number;
-    client?: ClientDTO;
     training?: TrainingDTO;
     payment?: PaymentDTO;
     reservationStatus?: ReservationStatusDTO;
@@ -4472,7 +4531,6 @@ export class TrainingReservationDTO implements ITrainingReservationDTO {
             this.trainingId = _data["trainingId"];
             this.paymentId = _data["paymentId"];
             this.reservationStatusId = _data["reservationStatusId"];
-            this.client = _data["client"] ? ClientDTO.fromJS(_data["client"]) : undefined as any;
             this.training = _data["training"] ? TrainingDTO.fromJS(_data["training"]) : undefined as any;
             this.payment = _data["payment"] ? PaymentDTO.fromJS(_data["payment"]) : undefined as any;
             this.reservationStatus = _data["reservationStatus"] ? ReservationStatusDTO.fromJS(_data["reservationStatus"]) : undefined as any;
@@ -4493,7 +4551,6 @@ export class TrainingReservationDTO implements ITrainingReservationDTO {
         data["trainingId"] = this.trainingId;
         data["paymentId"] = this.paymentId;
         data["reservationStatusId"] = this.reservationStatusId;
-        data["client"] = this.client ? this.client.toJSON() : undefined as any;
         data["training"] = this.training ? this.training.toJSON() : undefined as any;
         data["payment"] = this.payment ? this.payment.toJSON() : undefined as any;
         data["reservationStatus"] = this.reservationStatus ? this.reservationStatus.toJSON() : undefined as any;
@@ -4505,9 +4562,8 @@ export interface ITrainingReservationDTO {
     id?: number;
     clientId?: number;
     trainingId?: number;
-    paymentId?: number;
+    paymentId?: number | undefined;
     reservationStatusId?: number;
-    client?: ClientDTO;
     training?: TrainingDTO;
     payment?: PaymentDTO;
     reservationStatus?: ReservationStatusDTO;
