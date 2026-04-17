@@ -52,6 +52,11 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
   }, [training, isOpen, selectedClient]);
 
   const checkReservationCreation = async () => {
+    if (isFull)
+    {
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
       if (userRole === "Admin") // Если админ записывает клиента
@@ -225,6 +230,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
                 fullWidth
                 variant="outlined"
                 onClick={() => setView("selectClient")}
+                disabled={isFull}
               >
                 {selectedClient
                   ? `Клиент: ${selectedClient.user?.fullName}`
@@ -238,7 +244,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
              <Button
               fullWidth
               variant="contained"
-              disabled={isLoading || !canBook}
+              disabled={isLoading || !canBook || isFull}
               onClick={() => {handleCreateReservation()}}
             >
               {isLoading ? (

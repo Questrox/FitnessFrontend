@@ -22,6 +22,7 @@ import { ProfileInfo } from "../ProfileTabs/ProfileInfo";
 import { MembershipHistory } from "../ProfileTabs/MembershipHistory";
 import { ReservationHistory } from "../ProfileTabs/ReservationHistory";
 import { CreateMembershipDialog } from "../ProfileTabs/CreateMembershipDialog";
+import { CredentialsPrint } from "../AdminTabs/CredentialsPrint";
 
 const ProfilePage = () => {
   const { id } = useParams();
@@ -40,6 +41,11 @@ const ProfilePage = () => {
   const [openMembershipDialog, setOpenMembershipDialog] = useState(false);
   const [membershipTypes, setMembershipTypes] = useState<MembershipTypeDTO[]>([]);
   const [membershipDialogError, setMembershipDialogError] = useState<string | null>("");
+
+  const [credentials, setCredentials] = useState<{
+      username: string;
+      password: string;
+    } | null>(null);
 
   // для сохранения выбранной вкладки
   useEffect(() => {
@@ -109,13 +115,33 @@ const ProfilePage = () => {
     setClient(newClient);
   };
 
-  const handleGenerateCredentials = () => {
-    alert("Генерация данных для входа будет реализована здесь");
+  const handleGenerateCredentials = async () => {
+    if (window.confirm("Вы точно хотите сгенерировать новые данные для входа этого пользователя? Старые данные будут утеряны!"))
+    {
+      try {
+        const data = await apiClient.generateNewCredentials(client!.userId);
+        setCredentials({username: data.userName!, password: data.password!});
+        client!.user!.userName! = data.userName!;
+      } catch (error)
+      {
+        console.error("Ошибка при генерации данных для входа пользователя: ", error);
+      }
+    }
   };
 
   const handleCreateMembership = () => {
     setOpenMembershipDialog(true)
   };
+
+  if (credentials) {
+      return (
+        <CredentialsPrint
+          username={credentials.username}
+          password={credentials.password}
+          onClose={() => setCredentials(null)}
+        />
+      );
+    }
 
   if (isLoading)
     return <CircularProgress/>;

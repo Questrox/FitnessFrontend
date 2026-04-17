@@ -34,9 +34,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         // Основная область страницы, где будет отображаться содержимое `children`.
         sx={{
           flexGrow: 1, // Основной контейнер занимает оставшееся пространство.
-          padding: 3, // Отступы внутри основного контейнера.
-          marginTop: "64px",
-          minHeight: 500
+          minHeight: 563
         }}
       >
         {children}

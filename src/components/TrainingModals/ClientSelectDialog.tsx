@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { ClientDTO } from "../../api/g";
+import { ClientDTO, ClientDTOPagedResult } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
-import { Card, CardContent, CircularProgress, Dialog, DialogContent, DialogTitle, GridLegacy, TextField, Typography } from "@mui/material";
+import { Box, Card, CardContent, CircularProgress, Dialog, DialogContent, DialogTitle, GridLegacy, TextField, Typography, Pagination } from "@mui/material";
+import PersonIcon from "@mui/icons-material/Person";
+import { Phone } from "@mui/icons-material";
 
 interface Props {
   open: boolean;
@@ -11,24 +13,26 @@ interface Props {
 
 export function ClientSelectDialog({ open, onClose, onSelect }: Props) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [clients, setClients] = useState<ClientDTO[]>([]);
+  const [clients, setClients] = useState<ClientDTOPagedResult | undefined>(undefined);
+  const [page, setPage] = useState<number>(1);
+  const pageSize = 6;
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!open) return;
 
-    const fetch = async () => {
-      setIsLoading(true);
-      const data = await apiClient.getFilteredClients(searchQuery);
-      setClients(data || []);
-      setIsLoading(false);
-    };
+    fetch(searchQuery, page);
+  }, [open]);
 
-    fetch();
-  }, [searchQuery, open]);
+  const fetch = async (query: string, pageNumber: number) => {
+    setIsLoading(true);
+    const data = await apiClient.getPagedFilteredClients(pageNumber, pageSize, query);
+    setClients(data);
+    setIsLoading(false);
+  };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+    <Dialog open={open} onClose={() => { onClose(); setSearchQuery(""); setPage(1); }} fullWidth maxWidth="md">
       <DialogTitle>Выбор клиента</DialogTitle>
 
       <DialogContent>
@@ -36,34 +40,57 @@ export function ClientSelectDialog({ open, onClose, onSelect }: Props) {
           fullWidth
           placeholder="Введите ФИО, логин или номер телефона клиента"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => {setSearchQuery(e.target.value); setPage(1); fetch(e.target.value, 1)}}
           sx={{ mb: 2 }}
         />
 
         {isLoading ? (
-          <CircularProgress />
+        <CircularProgress />
         ) : (
-          <GridLegacy container spacing={2}>
-            {clients.map((client) => (
-              <GridLegacy item xs={12} md={6} key={client.id}>
-                <Card
-                  sx={{ cursor: "pointer" }}
-                  onClick={() => onSelect(client)}
-                >
-                  <CardContent>
+        <GridLegacy container spacing={2}>
+            {clients?.totalCount === 0 ? (
+            <Card sx={{ mt: 3, ml: 2, flexGrow: 1 }}>
+                <CardContent sx={{ textAlign: "center", py: 6 }}>
+                <PersonIcon sx={{ fontSize: 60, color: "text.disabled" }} />
+                <Typography color="text.secondary">
+                    Клиенты не найдены
+                </Typography>
+                </CardContent>
+            </Card>
+            ) : (
+            clients?.items?.map((client) => (
+                <GridLegacy item xs={12} md={6} key={client.id}>
+                <Card sx={{ cursor: "pointer" }} onClick={() => onSelect(client)}>
+                    <CardContent>
                     <Typography fontWeight={600}>
-                      {client.user?.fullName}
+                        {client.user?.fullName}
                     </Typography>
 
                     <Typography variant="body2" color="text.secondary">
-                      @{client.user?.userName}
+                        @{client.user?.userName}
                     </Typography>
-                  </CardContent>
+
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2 }}>
+                        <Phone fontSize="small" />
+                        <Typography variant="body2">
+                        {client.user?.phoneNumber}
+                        </Typography>
+                    </Box>
+                    </CardContent>
                 </Card>
-              </GridLegacy>
-            ))}
-          </GridLegacy>
+                </GridLegacy>
+            ))
+            )}
+        </GridLegacy>
         )}
+        <Box display="flex" justifyContent="center" mt={4}>
+          <Pagination
+            count={clients !== undefined && clients ? Math.ceil(clients.totalCount! / pageSize) : 1}
+            page={page}
+            onChange={(e, value) => { setPage(value); fetch(searchQuery, value); }}
+            color="primary"
+            />
+        </Box>
       </DialogContent>
     </Dialog>
   );

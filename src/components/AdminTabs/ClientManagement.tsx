@@ -13,13 +13,14 @@ import {
   DialogActions,
   Chip,
   GridLegacy,
-  CircularProgress
+  CircularProgress,
+  Pagination
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import PhoneIcon from "@mui/icons-material/Phone";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import PersonIcon from "@mui/icons-material/Person";
-import { ClientDTO, CreateClientDTO, MembershipDTO } from "../../api/g";
+import { ClientDTO, ClientDTOPagedResult, CreateClientDTO, MembershipDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
 import { useNavigate } from "react-router-dom";
 import { CredentialsPrint } from "./CredentialsPrint";
@@ -39,19 +40,23 @@ export function ClientManagement() {
     phoneNumber: "",
   });
 
-  const [filteredClients, setFilteredClients] = useState<ClientDTO[]>([]);
+  const [filteredClients, setFilteredClients] = useState<ClientDTOPagedResult | undefined>(undefined);
   const [error, setError] = useState<string>("");
 
+  const [page, setPage] = useState<number>(1);
+  const pageSize = 6;
+
   useEffect(() => {
-    fetchClients();
-  }, [searchQuery])
+    fetchClients(searchQuery, page);
+  }, [])
     
-  const fetchClients = async () => {
+  const fetchClients = async (query: string, pageNumber: number) => {
+    setIsLoading(true);
     try {
-      const data = await apiClient.getFilteredClients(searchQuery);
-      setFilteredClients(data || [])
+      const data = await apiClient.getPagedFilteredClients(pageNumber, pageSize, query);
+      setFilteredClients(data);
     } catch (error) {
-      console.error("Ошибка при загрузке клиентов:", error)
+      console.error("Ошибка при загрузке клиентов:", error);
     }
     setIsLoading(false);
   }
@@ -68,7 +73,8 @@ export function ClientManagement() {
       const data = await apiClient.addClient(dto);
       setCredentials({username: data.userName!, password: data.password!});
       handleCloseDialog();
-      await fetchClients();
+      setPage(1);
+      await fetchClients(searchQuery, 1);
     } catch (err: any)
     {
       setError(err.message);
@@ -91,9 +97,6 @@ export function ClientManagement() {
     );
   }
 
-  if (isLoading)
-    return <CircularProgress/>
-
   return (
     <Box>
       {/* Top controls */}
@@ -109,7 +112,7 @@ export function ClientManagement() {
           fullWidth
           placeholder="Введите ФИО, логин или номер телефона"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => { setSearchQuery(e.target.value); setPage(1); fetchClients(e.target.value, 1); }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -129,90 +132,92 @@ export function ClientManagement() {
       </Box>
 
       {/* List */}
-      <GridLegacy container spacing={3}>
-        {filteredClients.map((client) => {
+      {isLoading ? <CircularProgress/> : 
+        <GridLegacy container spacing={3}>
+          {filteredClients?.items?.map((client) => {
 
-          return (
-            <GridLegacy item xs={12} md={6} lg={4} key={client.id}>
-              <Card
-                sx={{
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  transition: "0.2s",
-                  "&:hover": { boxShadow: 6 },
-                }}
-              >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      mb: 2,
-                    }}
-                  >
-                    <Box>
-                      <Typography variant="h6" fontWeight={700}>
-                        {client.user?.fullName}
-                      </Typography>
+            return (
+              <GridLegacy item xs={12} md={6} lg={4} key={client.id}>
+                <Card
+                  sx={{
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    transition: "0.2s",
+                    "&:hover": { boxShadow: 6 },
+                  }}
+                >
+                  <CardContent sx={{ flexGrow: 1 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        mb: 2,
+                      }}
+                    >
+                      <Box>
+                        <Typography variant="h6" fontWeight={700}>
+                          {client.user?.fullName}
+                        </Typography>
 
-                      <Typography variant="body2" color="text.secondary">
-                        @{client.user?.userName}
-                      </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          @{client.user?.userName}
+                        </Typography>
 
-                      {/* {membership && (
-                        <Chip
-                          label={membership.name}
-                          color="primary"
-                          sx={{ mt: 1 }}
-                        />
-                      )} */}
-                    </Box>
-                  </Box>
-
-                  <Box sx={{ mb: 2 }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <PhoneIcon fontSize="small" />
-                      <Typography variant="body2">
-                        {client.user?.phoneNumber}
-                      </Typography>
+                        {/* {membership && (
+                          <Chip
+                            label={membership.name}
+                            color="primary"
+                            sx={{ mt: 1 }}
+                          />
+                        )} */}
+                      </Box>
                     </Box>
 
-                    {/* {membership && (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          mt: 1,
-                        }}
-                      >
-                        <CalendarTodayIcon fontSize="small" />
+                    <Box sx={{ mb: 2 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <PhoneIcon fontSize="small" />
                         <Typography variant="body2">
-                          Expires in{" "}
-                          <strong>{daysUntilExpiration} days</strong>
+                          {client.user?.phoneNumber}
                         </Typography>
                       </Box>
-                    )} */}
-                  </Box>
 
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    endIcon={<ChevronRightIcon />}
-                    onClick={() => navigate("/profiles/" + client.id)}
-                  >
-                    Перейти в профиль
-                  </Button>
-                </CardContent>
-              </Card>
-            </GridLegacy>
-          );
-        })}
-      </GridLegacy>
+                      {/* {membership && (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            mt: 1,
+                          }}
+                        >
+                          <CalendarTodayIcon fontSize="small" />
+                          <Typography variant="body2">
+                            Expires in{" "}
+                            <strong>{daysUntilExpiration} days</strong>
+                          </Typography>
+                        </Box>
+                      )} */}
+                    </Box>
+
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      endIcon={<ChevronRightIcon />}
+                      onClick={() => navigate("/profiles/" + client.id)}
+                    >
+                      Перейти в профиль
+                    </Button>
+                  </CardContent>
+                </Card>
+              </GridLegacy>
+            );
+          })}
+        </GridLegacy>
+      }
 
       {/* Empty */}
-      {filteredClients.length === 0 && (
+      {filteredClients?.totalCount === 0 && (
         <Card sx={{ mt: 3 }}>
           <CardContent sx={{ textAlign: "center", py: 6 }}>
             <PersonIcon sx={{ fontSize: 60, color: "text.disabled" }} />
@@ -222,6 +227,15 @@ export function ClientManagement() {
           </CardContent>
         </Card>
       )}
+
+      <Box display="flex" justifyContent="center" mt={4}>
+        <Pagination
+          count={filteredClients !== undefined && filteredClients ? Math.ceil(filteredClients.totalCount! / pageSize) : 1}
+          page={page}
+          onChange={(e, value) => { setPage(value); fetchClients(searchQuery, value); }}
+          color="primary"
+          />
+      </Box>
 
       {/* Create Dialog */}
       <Dialog open={open} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
