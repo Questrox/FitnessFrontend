@@ -11,10 +11,11 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
-import { CreateTrainingReservationDTO, TrainingDTO } from "../../api/g";
+import { ClientDTO, CreateTrainingReservationDTO, TrainingDTO } from "../../api/g";
 import { useAuth } from "../../context/AuthContext";
 import { useEffect, useState } from "react";
 import { apiClient } from "../../api/apiClient";
+import { ClientSelectDialog } from "./ClientSelectDialog";
 
 interface TrainingModalProps {
   isOpen: boolean;
@@ -30,6 +31,8 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
   const { userRole } = useAuth();
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [view, setView] = useState<"details" | "selectClient">("details");
+  const [selectedClient, setSelectedClient] = useState<ClientDTO | null>(null);
 
   const canBook = message === "";
 
@@ -37,29 +40,42 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
     if (!isOpen) {
       setMessage("");
       setIsLoading(true);
+      setSelectedClient(null);
     }
   }, [isOpen]);
 
   useEffect(() => {
     if (!training || !isOpen) return;
+    if (userRole === "Admin" && selectedClient === null) return;
 
+    checkReservationCreation();
+  }, [training, isOpen, selectedClient]);
+
+  const checkReservationCreation = async () => {
     setIsLoading(true);
-
-    (async () => {
-      try {
+    try {
+      if (userRole === "Admin") // Если админ записывает клиента
+      {
         const result = await apiClient.checkReservationPossibility(
-          training.id,
+          training!.id,
+          selectedClient!.id
+        );
+        setMessage(result);
+      }
+      else // Если клиент записывается сам
+      {
+        const result = await apiClient.checkReservationPossibility(
+          training!.id,
           undefined
         );
-
         setMessage(result);
-      } catch (error) {
-        console.error("Ошибка при проверке возможности записи", error);
-      } finally {
-        setIsLoading(false);
       }
-    })();
-  }, [training, isOpen]);
+    } catch (error) {
+      console.error("Ошибка при проверке возможности записи", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   if (!training) return null;
 
@@ -93,14 +109,14 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
     {
       const dto = new CreateTrainingReservationDTO();
       dto.trainingId = training.id;
-      dto.clientId = undefined; // ПЕРЕДЕЛАТЬ ДЛЯ АДМИНА
+      if (userRole === "User")
+        dto.clientId = undefined;
+      else
+        dto.clientId = selectedClient!.id;
       const result = await apiClient.addReservation(dto);
-      setTraining((prev) => {
-        if (!prev) return prev;
-        const next = new TrainingDTO(prev.toJSON());
-        next.reservationsCount = (prev.reservationsCount ?? 0) + 1;
-        return next;
-      });
+      console.log(training);
+      training.reservationsCount = (training.reservationsCount ?? 0) + 1;
+      await checkReservationCreation();
       await onSuccess();
       //onClose();
     }
@@ -111,7 +127,8 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
   }
 
   return (
-    <Dialog open={isOpen} onClose={onClose} maxWidth="sm" fullWidth>
+    <>
+    <Dialog open={isOpen && view === "details"} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>
         {trainingType.name}
       </DialogTitle>
@@ -203,9 +220,21 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
             </Typography>
           )}
 
+          {userRole === "Admin" && (
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => setView("selectClient")}
+              >
+                {selectedClient
+                  ? `Клиент: ${selectedClient.user?.fullName}`
+                  : "Выбрать клиента"}
+              </Button>
+            )}
+
           {/* Кнопки */}
           <Stack direction="row" spacing={2}>
-            {userRole === "User" &&
+            {(userRole === "User" || (userRole === "Admin" && selectedClient !== null)) &&
              <Button
               fullWidth
               variant="contained"
@@ -215,11 +244,10 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
               {isLoading ? (
               <CircularProgress size={24} color="inherit" />
               ) : (
-                "Записаться"
+                userRole === "User" ? "Записаться" : "Записать клиента"
               )}
               </Button>
             }
-
             <Button fullWidth variant="outlined" onClick={onClose}>
               Назад
             </Button>
@@ -227,5 +255,14 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
         </Stack>
       </DialogContent>
     </Dialog>
+    <ClientSelectDialog
+      open={isOpen && view === "selectClient"}
+      onClose={() => setView("details")}
+      onSelect={(client) => {
+        setSelectedClient(client);
+        setView("details");
+      }}
+    />
+    </>
   );
 }

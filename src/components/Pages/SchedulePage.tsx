@@ -135,6 +135,12 @@ export function SchedulePage() {
     });
   };
 
+  const hasTrainingsForDay = trainings.some((t) => {
+    const start = new Date(t.startDate!);
+    const dayName = start.toLocaleDateString("ru-RU", { weekday: "long" });
+    return dayName.toLowerCase() === selectedDay.toLowerCase();
+  });
+
   const handleTrainingClick = (training: TrainingDTO) => {
     setSelectedTraining(training);
     setModalOpen(true);
@@ -211,7 +217,27 @@ export function SchedulePage() {
         </Stack>
 
         {/* Schedule */}
-        {isLoading ? <CircularProgress/> : 
+        {isLoading ? (
+          <CircularProgress />
+        ) : !hasTrainingsForDay ? (
+          <Card
+            sx={{
+              mt: 2,
+              borderRadius: 3,
+              textAlign: "center",
+            }}
+          >
+            <CardContent sx={{ py: 6 }}>
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                Нет тренировок
+              </Typography>
+
+              <Typography variant="body2" color="text.secondary">
+                В выбранный день тренировки не запланированы
+              </Typography>
+            </CardContent>
+          </Card>
+        ) : (
           <Stack spacing={3}>
             {timeSlots.map((time) => {
               const dayTrainings = getTrainingsForDayAndTime(selectedDay, time);
@@ -239,13 +265,17 @@ export function SchedulePage() {
 
                       if (!type || !coach) return null;
 
-                      const spotsLeft = type.maxClients! - training!.reservationsCount!;
+                      const spotsLeft =
+                        type.maxClients! - training!.reservationsCount!;
                       const isFull = spotsLeft <= 0;
 
                       return (
                         <GridLegacy item xs={12} md={6} lg={4} key={training.id}>
                           <Card
-                            sx={{ cursor: "pointer", "&:hover": { boxShadow: 4 } }}
+                            sx={{
+                              cursor: "pointer",
+                              "&:hover": { boxShadow: 4 },
+                            }}
                             onClick={() => handleTrainingClick(training)}
                           >
                             <CardContent>
@@ -253,12 +283,16 @@ export function SchedulePage() {
                                 {type.name}
                               </Typography>
 
-                              <Typography variant="body2" color="text.secondary" sx={{mb: 2}}>
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ mb: 2 }}
+                              >
                                 {timeLabel}
                               </Typography>
 
                               <Divider />
-                              
+
                               <Stack
                                 direction="row"
                                 justifyContent="space-between"
@@ -267,11 +301,15 @@ export function SchedulePage() {
                                 <Typography variant="body2">
                                   {isFull
                                     ? "Нет мест"
-                                    : `${spotsLeft} ${spotsLeft === 1 ? "место" : "мест"}`}
+                                    : `${spotsLeft} ${
+                                        spotsLeft === 1 ? "место" : "мест"
+                                      }`}
                                 </Typography>
 
                                 <Typography fontWeight={600}>
-                                  {type.price! > 0 ? `${type.price} ₽` : "Бесплатная"}
+                                  {type.price! > 0
+                                    ? `${type.price} ₽`
+                                    : "Бесплатная"}
                                 </Typography>
                               </Stack>
                             </CardContent>
@@ -284,7 +322,7 @@ export function SchedulePage() {
               );
             })}
           </Stack>
-        }
+        )}
 
       </Container>
       <CreateTrainingDialog
