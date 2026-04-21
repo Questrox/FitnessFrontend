@@ -90,8 +90,9 @@ export function SchedulePage() {
     setIsLoading(false);
   }
 
-  const onCreateSuccess = async (startDate: Date) =>
+  const onSuccess = async (start: Date) =>
   {
+    const startDate = new Date(start);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const currentDay = today.getDay();
@@ -227,7 +228,7 @@ export function SchedulePage() {
               textAlign: "center",
             }}
           >
-            <CardContent sx={{ py: 6 }}>
+            <CardContent>
               <Typography variant="h6" color="text.secondary" gutterBottom>
                 Нет тренировок
               </Typography>
@@ -329,14 +330,15 @@ export function SchedulePage() {
         isOpen={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
         trainingTypes={trainingTypes}
-        onSuccess={onCreateSuccess}
+        onSuccess={onSuccess}
       />
       <TrainingDetails
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         training={selectedTraining}
         setTraining={setSelectedTraining}
-        onSuccess={fetchWeekTrainings}
+        onCreateReservationSuccess={fetchWeekTrainings}
+        onCancelTrainingSuccess={onSuccess}
       />
     </Box>
   );

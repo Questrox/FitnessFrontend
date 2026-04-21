@@ -11,6 +11,7 @@ import ShieldIcon from "@mui/icons-material/Shield";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import PeopleIcon from "@mui/icons-material/People";
+import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 const AdminPage = () => {
@@ -21,7 +22,9 @@ const AdminPage = () => {
   const currentTab = (() => {
     if (location.pathname.includes("/training-types")) return "trainingTypes";
     if (location.pathname.includes("/clients")) return "clients";
-    return "memberships";
+    if (location.pathname.includes("memberships")) return "memberships";
+    if (location.pathname.includes("notifications")) return "notifications";
+    return "";
   })();
 
   const handleChange = (_: any, value: string) => {
@@ -34,6 +37,9 @@ const AdminPage = () => {
         break;
       case "clients":
         navigate("/admin/clients");
+        break;
+      case "notifications":
+        navigate("/admin/notifications");
         break;
     }
   };
@@ -75,6 +81,7 @@ const AdminPage = () => {
           <Tab value="memberships" icon={<CreditCardIcon />} iconPosition="start" label="Абонементы" />
           <Tab value="trainingTypes" icon={<FitnessCenterIcon />} iconPosition="start" label="Тренировки" />
           <Tab value="clients" icon={<PeopleIcon />} iconPosition="start" label="Клиенты" />
+          <Tab value="notifications" icon={<NotificationsNoneIcon />} iconPosition="start" label="Уведомления" />
         </Tabs>
 
         {/* Контент теперь через роутер */}

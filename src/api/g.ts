@@ -2097,6 +2097,46 @@ export class ApiClient {
     /**
      * @return OK
      */
+    confirmNotification(id: number): Promise<CancellationNotificationDTO> {
+        let url_ = this.baseUrl + "/api/Notification/ConfirmNotification/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "PUT",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processConfirmNotification(_response);
+        });
+    }
+
+    protected processConfirmNotification(response: Response): Promise<CancellationNotificationDTO> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CancellationNotificationDTO.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CancellationNotificationDTO>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
     deleteNotification(id: number): Promise<void> {
         let url_ = this.baseUrl + "/api/Notification/DeleteNotification/{id}";
         if (id === undefined || id === null)
@@ -2639,6 +2679,90 @@ export class ApiClient {
             });
         }
         return Promise.resolve<TrainingDTO>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    cancelTraining(id: number): Promise<TrainingDTO> {
+        let url_ = this.baseUrl + "/api/Training/CancelTraining/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "PUT",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCancelTraining(_response);
+        });
+    }
+
+    protected processCancelTraining(response: Response): Promise<TrainingDTO> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = TrainingDTO.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TrainingDTO>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    getTrainingsWithNotifications(): Promise<TrainingWithNotificationsDTO[]> {
+        let url_ = this.baseUrl + "/api/Training/GetTrainingsWithNotifications";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetTrainingsWithNotifications(_response);
+        });
+    }
+
+    protected processGetTrainingsWithNotifications(response: Response): Promise<TrainingWithNotificationsDTO[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TrainingWithNotificationsDTO.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TrainingWithNotificationsDTO[]>(null as any);
     }
 
     /**
@@ -3370,6 +3494,8 @@ export class CancellationNotificationDTO implements ICancellationNotificationDTO
     training?: TrainingDTO;
     clientId?: number;
     client?: ClientDTO;
+    adminId?: string | undefined;
+    admin?: UserDTO;
 
     constructor(data?: ICancellationNotificationDTO) {
         if (data) {
@@ -3388,6 +3514,8 @@ export class CancellationNotificationDTO implements ICancellationNotificationDTO
             this.training = _data["training"] ? TrainingDTO.fromJS(_data["training"]) : undefined as any;
             this.clientId = _data["clientId"];
             this.client = _data["client"] ? ClientDTO.fromJS(_data["client"]) : undefined as any;
+            this.adminId = _data["adminId"];
+            this.admin = _data["admin"] ? UserDTO.fromJS(_data["admin"]) : undefined as any;
         }
     }
 
@@ -3406,6 +3534,8 @@ export class CancellationNotificationDTO implements ICancellationNotificationDTO
         data["training"] = this.training ? this.training.toJSON() : undefined as any;
         data["clientId"] = this.clientId;
         data["client"] = this.client ? this.client.toJSON() : undefined as any;
+        data["adminId"] = this.adminId;
+        data["admin"] = this.admin ? this.admin.toJSON() : undefined as any;
         return data;
     }
 }
@@ -3417,6 +3547,8 @@ export interface ICancellationNotificationDTO {
     training?: TrainingDTO;
     clientId?: number;
     client?: ClientDTO;
+    adminId?: string | undefined;
+    admin?: UserDTO;
 }
 
 export class ChangePasswordModel implements IChangePasswordModel {
@@ -3466,7 +3598,6 @@ export class ClientDTO implements IClientDTO {
     user?: UserDTO;
     memberships?: MembershipDTO[] | undefined;
     trainingReservations?: TrainingReservationDTO[] | undefined;
-    cancellationNotifications?: CancellationNotificationDTO[] | undefined;
 
     constructor(data?: IClientDTO) {
         if (data) {
@@ -3492,11 +3623,6 @@ export class ClientDTO implements IClientDTO {
                 this.trainingReservations = [] as any;
                 for (let item of _data["trainingReservations"])
                     this.trainingReservations!.push(TrainingReservationDTO.fromJS(item));
-            }
-            if (Array.isArray(_data["cancellationNotifications"])) {
-                this.cancellationNotifications = [] as any;
-                for (let item of _data["cancellationNotifications"])
-                    this.cancellationNotifications!.push(CancellationNotificationDTO.fromJS(item));
             }
         }
     }
@@ -3524,11 +3650,6 @@ export class ClientDTO implements IClientDTO {
             for (let item of this.trainingReservations)
                 data["trainingReservations"].push(item ? item.toJSON() : undefined as any);
         }
-        if (Array.isArray(this.cancellationNotifications)) {
-            data["cancellationNotifications"] = [];
-            for (let item of this.cancellationNotifications)
-                data["cancellationNotifications"].push(item ? item.toJSON() : undefined as any);
-        }
         return data;
     }
 }
@@ -3540,7 +3661,6 @@ export interface IClientDTO {
     user?: UserDTO;
     memberships?: MembershipDTO[] | undefined;
     trainingReservations?: TrainingReservationDTO[] | undefined;
-    cancellationNotifications?: CancellationNotificationDTO[] | undefined;
 }
 
 export class ClientDTOPagedResult implements IClientDTOPagedResult {
@@ -4775,6 +4895,58 @@ export interface ITrainingTypeDTO {
     image?: string | undefined;
     duration?: number;
     cashbackPercentage?: number;
+}
+
+export class TrainingWithNotificationsDTO implements ITrainingWithNotificationsDTO {
+    training?: TrainingDTO;
+    notifications?: CancellationNotificationDTO[] | undefined;
+    notNotifiedCount?: number;
+
+    constructor(data?: ITrainingWithNotificationsDTO) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.training = _data["training"] ? TrainingDTO.fromJS(_data["training"]) : undefined as any;
+            if (Array.isArray(_data["notifications"])) {
+                this.notifications = [] as any;
+                for (let item of _data["notifications"])
+                    this.notifications!.push(CancellationNotificationDTO.fromJS(item));
+            }
+            this.notNotifiedCount = _data["notNotifiedCount"];
+        }
+    }
+
+    static fromJS(data: any): TrainingWithNotificationsDTO {
+        data = typeof data === 'object' ? data : {};
+        let result = new TrainingWithNotificationsDTO();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["training"] = this.training ? this.training.toJSON() : undefined as any;
+        if (Array.isArray(this.notifications)) {
+            data["notifications"] = [];
+            for (let item of this.notifications)
+                data["notifications"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["notNotifiedCount"] = this.notNotifiedCount;
+        return data;
+    }
+}
+
+export interface ITrainingWithNotificationsDTO {
+    training?: TrainingDTO;
+    notifications?: CancellationNotificationDTO[] | undefined;
+    notNotifiedCount?: number;
 }
 
 export class UserDTO implements IUserDTO {

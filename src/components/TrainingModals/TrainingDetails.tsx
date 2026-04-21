@@ -22,14 +22,16 @@ interface TrainingModalProps {
   onClose: () => void;
   training: TrainingDTO | null;
   setTraining: React.Dispatch<React.SetStateAction<TrainingDTO | null>>;
-  onSuccess: () => Promise<void>
+  onCreateReservationSuccess: () => Promise<void>
+  onCancelTrainingSuccess: (startDate: Date) => Promise<void>;
 }
 
-export function TrainingDetails({ isOpen, onClose, training, setTraining, onSuccess }: TrainingModalProps) {
+export function TrainingDetails({ isOpen, onClose, training, setTraining, onCreateReservationSuccess, onCancelTrainingSuccess }: TrainingModalProps) {
   const theme = useTheme();
 
   const { userRole } = useAuth();
   const [message, setMessage] = useState("");
+  const [cancelError, setCancelError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState<"details" | "selectClient">("details");
   const [selectedClient, setSelectedClient] = useState<ClientDTO | null>(null);
@@ -39,6 +41,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
   useEffect(() => {
     if (!isOpen) {
       setMessage("");
+      setCancelError("");
       setIsLoading(true);
       setSelectedClient(null);
     }
@@ -47,6 +50,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
   useEffect(() => {
     if (!training || !isOpen) return;
     if (userRole === "Admin" && selectedClient === null) return;
+    if (training.trainingStatusId === 3) return;
 
     checkReservationCreation();
   }, [training, isOpen, selectedClient]);
@@ -79,6 +83,21 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
       console.error("Ошибка при проверке возможности записи", error);
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  const handleCancel = async () => {
+    if (window.confirm("Вы уверены, что хотите отменить эту тренировку?")) {
+      try {
+        const result = await apiClient.cancelTraining(training!.id!);
+        setTraining(result);
+        setCancelError("");
+        await onCancelTrainingSuccess(result!.startDate!);
+      } catch (error: any)
+      {
+        const message = error.message.split(": ")[1];
+        setCancelError(message);
+      }
     }
   }
 
@@ -122,7 +141,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
       console.log(training);
       training.reservationsCount = (training.reservationsCount ?? 0) + 1;
       await checkReservationCreation();
-      await onSuccess();
+      await onCreateReservationSuccess();
       //onClose();
     }
     catch (error: any)
@@ -182,7 +201,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
           </Stack>
 
           {/* Доступность */}
-          {isFull ? (
+          {isFull || training?.trainingStatusId === 3 ? (
             <Box
                 sx={{
                 bgcolor: alpha(theme.palette.error.main, 0.1),
@@ -193,7 +212,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
                 fontWeight: 600,
                 }}
             >
-                Нет свободных мест
+                {training?.trainingStatusId === 3 ? "Тренировка отменена" : "Нет свободных мест"}
             </Box>
             ) : (
             <Box
@@ -224,8 +243,18 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
               {message}
             </Typography>
           )}
+          {cancelError && (
+            <Typography
+              variant="body2"
+              textAlign="center"
+              fontWeight="bold"
+              color="error"
+            >
+              {cancelError}
+            </Typography>
+          )}
 
-          {userRole === "Admin" && (
+          {userRole === "Admin" && training?.trainingStatusId !== 3 && (
               <Button
                 fullWidth
                 variant="outlined"
@@ -235,6 +264,17 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onSucc
                 {selectedClient
                   ? `Клиент: ${selectedClient.user?.fullName}`
                   : "Выбрать клиента"}
+              </Button>
+            )}
+
+            {userRole === "Admin" && training?.trainingStatusId === 1 && (
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={handleCancel}
+                color="error"
+              >
+                Отменить тренировку
               </Button>
             )}
 

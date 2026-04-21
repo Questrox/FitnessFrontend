@@ -103,13 +103,7 @@ const ProfilePage = () => {
     const updatedReservations = client!.trainingReservations!.map((tr) =>
         tr.id === reservationId ? updatedReservation : tr
       );
-    const newClient = new ClientDTO();
-    newClient.bonuses = client?.bonuses;
-    newClient.cancellationNotifications = client?.cancellationNotifications;
-    newClient.id = client?.id;
-    newClient.memberships = client?.memberships;
-    newClient.user = client?.user;
-    newClient.userId = client?.userId;
+    const newClient = new ClientDTO(client);
     newClient.trainingReservations = updatedReservations;
     
     setClient(newClient);

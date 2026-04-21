@@ -18,6 +18,7 @@ import { ClientManagement } from './components/AdminTabs/ClientManagement';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import "dayjs/locale/ru";
+import { NotificationsManagement } from './components/AdminTabs/NotificationsManagement';
 
 enum UserRole {
   Admin = "Admin",
@@ -84,6 +85,7 @@ const App: React.FC = () => {
               <Route path="memberships" element={<MembershipManagement />} />
               <Route path="training-types" element={<TrainingTypeManagement />} />
               <Route path="clients/*" element={<ClientManagement/>} />
+              <Route path="notifications" element={<NotificationsManagement/>} />
             </Route>
             <Route path="profiles/:id" element={
               <ProtectedRoute allowedRoles={[UserRole.Admin]}>
