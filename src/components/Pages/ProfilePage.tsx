@@ -128,14 +128,23 @@ const ProfilePage = () => {
   };
 
   if (credentials) {
-      return (
-        <CredentialsPrint
-          username={credentials.username}
-          password={credentials.password}
-          onClose={() => setCredentials(null)}
-        />
-      );
-    }
+  return (
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        px: 2,
+      }}
+    >
+      <CredentialsPrint
+        username={credentials.username}
+        password={credentials.password}
+        onClose={() => setCredentials(null)}
+      />
+    </Box>
+  );
+}
 
   if (isLoading)
     return <CircularProgress/>;
@@ -231,7 +240,7 @@ const ProfilePage = () => {
         </Tabs>
 
         {/* Content */}
-        {activeTab === "profile" && <ProfileInfo client={client} membership={currentMembership} isAdminView={id != null && id != undefined} />}
+        {activeTab === "profile" && <ProfileInfo client={client} setClient={setClient} membership={currentMembership} isAdminView={id != null && id != undefined} />}
         {activeTab === "memberships" && <MembershipHistory memberships={client.memberships!} />}
         {activeTab === "classes" && <ReservationHistory reservationsList={client.trainingReservations!}
                                                         onCancel={handleCancelReservation} 

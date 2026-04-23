@@ -854,20 +854,38 @@ export class ApiClient {
     }
 
     /**
-     * @param body (optional) 
+     * @param experience (optional) 
+     * @param fullName (optional) 
+     * @param phoneNumber (optional) 
+     * @param image (optional) 
      * @return OK
      */
-    addCoach(body: CreateCoachDTO | undefined): Promise<CoachDTO> {
-        let url_ = this.baseUrl + "/api/Coach/AddCoach";
+    addCoach(experience: number | undefined, fullName: string | undefined, phoneNumber: string | undefined, image: FileParameter | undefined): Promise<LoginCredentials> {
+        let url_ = this.baseUrl + "/api/Coach/AddCoach?";
+        if (experience === null)
+            throw new globalThis.Error("The parameter 'experience' cannot be null.");
+        else if (experience !== undefined)
+            url_ += "Experience=" + encodeURIComponent("" + experience) + "&";
+        if (fullName === null)
+            throw new globalThis.Error("The parameter 'fullName' cannot be null.");
+        else if (fullName !== undefined)
+            url_ += "FullName=" + encodeURIComponent("" + fullName) + "&";
+        if (phoneNumber === null)
+            throw new globalThis.Error("The parameter 'phoneNumber' cannot be null.");
+        else if (phoneNumber !== undefined)
+            url_ += "PhoneNumber=" + encodeURIComponent("" + phoneNumber) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(body);
+        const content_ = new FormData();
+        if (image === null || image === undefined)
+            throw new globalThis.Error("The parameter 'image' cannot be null.");
+        else
+            content_.append("Image", image.data, image.fileName ? image.fileName : "Image");
 
         let options_: RequestInit = {
             body: content_,
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
@@ -877,14 +895,14 @@ export class ApiClient {
         });
     }
 
-    protected processAddCoach(response: Response): Promise<CoachDTO> {
+    protected processAddCoach(response: Response): Promise<LoginCredentials> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = CoachDTO.fromJS(resultData200);
+            result200 = LoginCredentials.fromJS(resultData200);
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -892,7 +910,7 @@ export class ApiClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<CoachDTO>(null as any);
+        return Promise.resolve<LoginCredentials>(null as any);
     }
 
     /**
@@ -3913,50 +3931,6 @@ export class CreateClientDTO implements ICreateClientDTO {
 export interface ICreateClientDTO {
     fullName?: string | undefined;
     phoneNumber?: string | undefined;
-}
-
-export class CreateCoachDTO implements ICreateCoachDTO {
-    experience?: number;
-    photoPath?: string | undefined;
-    userId?: string | undefined;
-
-    constructor(data?: ICreateCoachDTO) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.experience = _data["experience"];
-            this.photoPath = _data["photoPath"];
-            this.userId = _data["userId"];
-        }
-    }
-
-    static fromJS(data: any): CreateCoachDTO {
-        data = typeof data === 'object' ? data : {};
-        let result = new CreateCoachDTO();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["experience"] = this.experience;
-        data["photoPath"] = this.photoPath;
-        data["userId"] = this.userId;
-        return data;
-    }
-}
-
-export interface ICreateCoachDTO {
-    experience?: number;
-    photoPath?: string | undefined;
-    userId?: string | undefined;
 }
 
 export class CreateCoachScheduleDTO implements ICreateCoachScheduleDTO {

@@ -13,6 +13,7 @@ import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import PeopleIcon from "@mui/icons-material/People";
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import SportsBaseballIcon from '@mui/icons-material/SportsBaseball';
 
 const AdminPage = () => {
   const location = useLocation();
@@ -24,6 +25,7 @@ const AdminPage = () => {
     if (location.pathname.includes("/clients")) return "clients";
     if (location.pathname.includes("memberships")) return "memberships";
     if (location.pathname.includes("notifications")) return "notifications";
+    if (location.pathname.includes("coaches")) return "coaches";
     return "";
   })();
 
@@ -40,6 +42,9 @@ const AdminPage = () => {
         break;
       case "notifications":
         navigate("/admin/notifications");
+        break;
+      case "coaches":
+        navigate("/admin/coaches");
         break;
     }
   };
@@ -81,6 +86,7 @@ const AdminPage = () => {
           <Tab value="memberships" icon={<CreditCardIcon />} iconPosition="start" label="Абонементы" />
           <Tab value="trainingTypes" icon={<FitnessCenterIcon />} iconPosition="start" label="Тренировки" />
           <Tab value="clients" icon={<PeopleIcon />} iconPosition="start" label="Клиенты" />
+          <Tab value="coaches" icon={<SportsBaseballIcon />} iconPosition="start" label="Тренеры" />
           <Tab value="notifications" icon={<NotificationsNoneIcon />} iconPosition="start" label="Уведомления" />
         </Tabs>
 

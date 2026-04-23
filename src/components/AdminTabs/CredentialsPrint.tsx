@@ -18,7 +18,7 @@ export const CredentialsPrint = ({ username, password, onClose }: Props) => {
   };
 
   return (
-    <Box sx={{ p: 4 }}>
+    <Box sx={{ p: 4, border: 1, mt: 2 }}>
       {/* Печатная область */}
       <Box
         id="print-area"

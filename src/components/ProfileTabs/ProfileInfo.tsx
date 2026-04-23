@@ -28,11 +28,12 @@ import { useAuth } from "../../context/AuthContext";
 
 interface Props {
   client: ClientDTO;
+  setClient: (value: ClientDTO) => void;
   membership?: MembershipDTO;
   isAdminView: boolean
 }
 
-export function ProfileInfo({ client, membership, isAdminView }: Props) {
+export function ProfileInfo({ client, setClient, membership, isAdminView }: Props) {
   const { user, updateUserName } = useAuth();
   const [error, setError] = useState("");
   const [dialogError, setDialogError] = useState("");
@@ -101,13 +102,17 @@ export function ProfileInfo({ client, membership, isAdminView }: Props) {
         userName: false,
         phoneNumber: false,
       });
-      client.user.fullName = editData.fullName;
-      client.user.userName = editData.userName;
-      client.user.phoneNumber = editData.phoneNumber;
+      
       if (!isAdminView && user!.userName != editData.userName) 
       {
         updateUserName(editData.userName);
       }
+
+      const updatedClient = new ClientDTO(client);
+      updatedClient.user!.fullName = editData.fullName;
+      updatedClient.user!.userName = editData.userName;
+      updatedClient.user!.phoneNumber = editData.phoneNumber;
+      setClient(updatedClient);
       setError("");
     } catch (error: any) {
       const message = error.message.split(": ")[1];
