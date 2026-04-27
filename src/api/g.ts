@@ -914,23 +914,46 @@ export class ApiClient {
     }
 
     /**
-     * @param body (optional) 
+     * @param id (optional) 
+     * @param fullName (optional) 
+     * @param phoneNumber (optional) 
+     * @param experience (optional) 
+     * @param image (optional) 
      * @return OK
      */
-    updateCoach(id: number, body: CoachDTO | undefined): Promise<CoachDTO> {
-        let url_ = this.baseUrl + "/api/Coach/UpdateCoach/{id}";
-        if (id === undefined || id === null)
-            throw new globalThis.Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    updateCoach(routeId: number, id: number | undefined, fullName: string | undefined, phoneNumber: string | undefined, experience: number | undefined, image: FileParameter | undefined): Promise<CoachDTO> {
+        let url_ = this.baseUrl + "/api/Coach/UpdateCoach/{routeId}?";
+        if (routeId === undefined || routeId === null)
+            throw new globalThis.Error("The parameter 'routeId' must be defined.");
+        url_ = url_.replace("{routeId}", encodeURIComponent("" + routeId));
+        if (id === null)
+            throw new globalThis.Error("The parameter 'id' cannot be null.");
+        else if (id !== undefined)
+            url_ += "Id=" + encodeURIComponent("" + id) + "&";
+        if (fullName === null)
+            throw new globalThis.Error("The parameter 'fullName' cannot be null.");
+        else if (fullName !== undefined)
+            url_ += "FullName=" + encodeURIComponent("" + fullName) + "&";
+        if (phoneNumber === null)
+            throw new globalThis.Error("The parameter 'phoneNumber' cannot be null.");
+        else if (phoneNumber !== undefined)
+            url_ += "PhoneNumber=" + encodeURIComponent("" + phoneNumber) + "&";
+        if (experience === null)
+            throw new globalThis.Error("The parameter 'experience' cannot be null.");
+        else if (experience !== undefined)
+            url_ += "Experience=" + encodeURIComponent("" + experience) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
-        const content_ = JSON.stringify(body);
+        const content_ = new FormData();
+        if (image === null || image === undefined)
+            throw new globalThis.Error("The parameter 'image' cannot be null.");
+        else
+            content_.append("Image", image.data, image.fileName ? image.fileName : "Image");
 
         let options_: RequestInit = {
             body: content_,
             method: "PUT",
             headers: {
-                "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };

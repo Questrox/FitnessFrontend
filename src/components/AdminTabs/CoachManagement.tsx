@@ -230,6 +230,10 @@ export function CoachManagement() {
         isOpen={editDialogOpen}
         onClose={() => setEditDialogOpen(false)}
         coach={selectedCoach}
+        setCoach={setSelectedCoach}
+        coaches={coaches}
+        setCoaches={setCoaches}
+        setCredentials={setCredentials}
       />
     </Box>
   );

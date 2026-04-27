@@ -21,7 +21,10 @@ import AddIcon from "@mui/icons-material/Add";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UploadIcon from "@mui/icons-material/Upload";
-import { CoachDTO, CoachScheduleDTO } from "../../api/g";
+import { CoachDTO, CoachScheduleDTO, CreateCoachScheduleDTO } from "../../api/g";
+import { apiClient } from "../../api/apiClient";
+import { Dayjs } from "dayjs";
+import { TimePicker } from "@mui/x-date-pickers";
 
 const daysOfWeek = [
   { value: 1, label: "Понедельник" },
@@ -37,31 +40,33 @@ interface EditCoachDialogProps {
   isOpen: boolean;
   onClose: () => void;
   coach: CoachDTO | null;
+  setCoach: React.Dispatch<React.SetStateAction<CoachDTO | null>>;
+  coaches: CoachDTO[];
+  setCoaches: React.Dispatch<React.SetStateAction<CoachDTO[]>>;
+  setCredentials: (value: any) => void;
 }
 
-export function EditCoachDialog({ isOpen, onClose, coach }: EditCoachDialogProps) {
+export function EditCoachDialog({ isOpen, onClose, coach, setCoach, coaches, setCoaches, setCredentials }: EditCoachDialogProps) {
   const theme = useTheme();
 
   const [tab, setTab] = useState(0);
+  const [error, setError] = useState("");
+  const [scheduleError, setScheduleError] = useState("");
 
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [yearsExperience, setYearsExperience] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
 
-  const [schedules, setSchedules] = useState<CoachScheduleDTO[]>([]);
-  const [newSchedule, setNewSchedule] = useState({
-    weekDay: 1,
-    startTime: "",
-    endTime: "",
-  });
+  const [weekDay, setWeekDay] = useState(1);
+  const [startTime, setStartTime] = useState<Dayjs | null>(null);
+  const [endTime, setEndTime] = useState<Dayjs | null>(null);
 
   useEffect(() => {
     if (coach) {
       setFullName(coach.user?.fullName!);
       setPhoneNumber(coach.user?.phoneNumber!);
       setYearsExperience(coach.experience!.toString());
-      setSchedules(coach.coachSchedules!);
       setPhotoFile(null);
     }
   }, [coach]);
@@ -72,49 +77,121 @@ export function EditCoachDialog({ isOpen, onClose, coach }: EditCoachDialogProps
     }
   };
 
-  const handleAddSchedule = () => {
-    if (!newSchedule.startTime || !newSchedule.endTime) return;
+  const handleGenerateCredentials = async () => {
+    if (window.confirm("Вы уверены, что хотите сгенерировать новые данные для входа? Несохраненные изменения будут утеряны!"))
+    {
+      try {
+        const credentials = await apiClient.generateNewCredentials(coach?.userId);
+        setCredentials({username: credentials.userName, password: credentials.password});
+        handleClose();
 
-    alert("Добавление нового слота расписания");
-//     const schedule = new CoachScheduleDTO()
-//       id: Date.now(),
-//       weekDay: newSchedule.weekDay,
-//       startTime: newSchedule.startTime,
-//       endTime: newSchedule.endTime,
-//       coachId: Number(coach?.id),
-//   );
+        const updatedCoach = new CoachDTO(coach!);
+        updatedCoach.user!.userName = credentials.userName;
+        const updatedCoaches = coaches.map(c => c.id === coach!.id ? updatedCoach : c);
+        setCoaches(updatedCoaches);
+      } catch (error: any) {
+        console.error(error.message);
+      }
+    }
+  }
 
-//     setSchedules((prev) => [...prev, schedule]);
-//     setNewSchedule({ weekDay: 1, startTime: "", endTime: "" });
+  const handleAddSchedule = async () => {
+    if (!startTime || !endTime) return;
+    if (startTime > endTime)
+    {
+      setScheduleError("Время начала должно быть раньше времени конца");
+      return;
+    }
+    try {
+      const model = new CreateCoachScheduleDTO();
+      model.coachId = coach!.id;
+      model.weekDay = weekDay;
+      model.startTime = startTime.format("HH:mm:ss");
+      model.endTime = endTime.format("HH:mm:ss");
+
+      const created = await apiClient.addCoachSchedule(model);
+      const updatedCoach = new CoachDTO(coach!);
+      updatedCoach.coachSchedules = [...(updatedCoach.coachSchedules || []), created];
+      setCoach(updatedCoach);
+
+      const updatedCoaches = coaches.map(c => c.id === coach!.id ? updatedCoach : c);
+      setCoaches(updatedCoaches);
+    } catch (error: any)
+    {
+      setScheduleError(error.message);
+    }
   };
 
-  const handleDeleteSchedule = (id: number) => {
-    alert("Удаление слота расписания");
-    //setSchedules((prev) => prev.filter((s) => s.id !== id));
+  const handleDeleteSchedule = async (id: number) => {
+    if (window.confirm("Вы уверены, что хотите удалить данный слот расписания?"))
+    {
+      try {
+        await apiClient.softDeleteCoachSchedule(id);
+
+        const updatedCoach = new CoachDTO(coach!);
+        updatedCoach.coachSchedules = coach?.coachSchedules!.filter(cs => cs.id !== id);
+        setCoach(updatedCoach);
+
+        const updatedCoaches = coaches.map(c => c.id === coach!.id ? updatedCoach : c);
+        setCoaches(updatedCoaches);
+      } catch (error: any) {
+        console.error("Произошла ошибка при удалении слота расписания: ", error);
+      }
+    }
   };
 
-  const handleSaveInfo = () => {
-    alert("Сохранение изменений");
+  const handleSaveInfo = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    // const updatedCoach = {
-    //   id: coach?.id,
-    //   fullName,
-    //   userName,
-    //   phoneNumber,
-    //   yearsExperience: parseInt(yearsExperience),
-    //   photo: photoFile ? photoFile.name : "без изменений",
-    // };
+    const isWhitespace = fullName.trim().length === 0 || phoneNumber.trim().length === 0;
 
-    // console.log(updatedCoach);
+    if (!fullName || !phoneNumber || !yearsExperience || isWhitespace) {
+      setError("Заполните все поля");
+      return;
+    }
+
+    if (parseInt(yearsExperience) < 0) {
+      setError("Стаж не может быть отрицательным");
+      return;
+    }
+
+    try {
+      const fileParam = photoFile ? { data: photoFile, fileName: photoFile.name } : { data: new Blob(), fileName: "" }; 
+      const updatedCoach = await apiClient.updateCoach(coach!.id!, coach?.id, fullName, phoneNumber, parseInt(yearsExperience), fileParam);
+      const updatedCoaches = coaches.map(c => c.id === coach!.id ? updatedCoach : c);
+      setCoaches(updatedCoaches);
+      setError("");
+    }
+    catch (error: any) {
+      setError(error.message);
+    }
+    alert("Изменения сохранены!");
   };
+
+  const handleClose = () => {
+    onClose();
+    setPhotoFile(null);
+    setTab(0);
+    setWeekDay(1);
+    setStartTime(null);
+    setEndTime(null);
+    setError("");
+    setScheduleError("");
+  }
 
   const getSchedulesForDay = (day: number) =>
-    schedules.filter((s) => s.weekDay === day);
+    coach?.coachSchedules
+      ?.filter((s) => s.weekDay === day)
+      .sort((a, b) => {
+        // Сравниваем строки времени "HH:MM:SS" или "HH:MM"
+        if (!a.startTime || !b.startTime) return 0;
+        return a.startTime.localeCompare(b.startTime);
+      });
 
   if (!coach) return null;
 
   return (
-    <Dialog open={isOpen} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open={isOpen} onClose={handleClose} maxWidth="md" fullWidth>
       <DialogTitle>Редактирование тренера</DialogTitle>
 
       <DialogContent sx={{ pt: 2 }}>
@@ -125,72 +202,108 @@ export function EditCoachDialog({ isOpen, onClose, coach }: EditCoachDialogProps
 
         {/* === Вкладка информации === */}
         {tab === 0 && (
-          <Box mt={3}>
+        <Box mt={3}>
+          <Box
+            component="form"
+            onSubmit={handleSaveInfo}
+            id="editCoachForm"
+          >
             <Stack spacing={3}>
-              {coach.photoPath && (
-                <Box display="flex" justifyContent="center">
-                  <Box
-                    component="img"
-                    src={`/${coach.photoPath}`}
-                    sx={{
-                      width: 100,
-                      height: 100,
-                      borderRadius: "50%",
-                      objectFit: "cover",
-                      border: `2px solid ${theme.palette.divider}`,
-                    }}
-                  />
-                </Box>
-              )}
-
+              {/* ФИО */}
               <TextField
                 label="ФИО"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 fullWidth
+                required
               />
 
+              {/* Телефон */}
               <TextField
                 label="Телефон"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 fullWidth
+                required
               />
 
+              {/* Стаж */}
               <TextField
                 label="Стаж (лет)"
                 type="number"
                 value={yearsExperience}
                 onChange={(e) => setYearsExperience(e.target.value)}
                 fullWidth
+                required
+                inputProps={{ min: 0 }}
               />
 
+              {/* Фото */}
               <Box>
-                <input
-                  id="photo"
-                  type="file"
-                  hidden
-                  onChange={handlePhotoChange}
-                />
+                <Stack direction="row" spacing={2} alignItems="center">
+                  {(photoFile || coach.photoPath) && (
+                    <Box
+                      component="img"
+                      src={
+                        photoFile
+                          ? URL.createObjectURL(photoFile)
+                          : `/${coach.photoPath}`
+                      }
+                      sx={{
+                        width: 100,
+                        height: 100,
+                        objectFit: "cover",
+                        borderRadius: 2,
+                      }}
+                    />
+                  )}
+
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    startIcon={<UploadIcon />}
+                  >
+                    Загрузить изображение
+                    <input
+                      hidden
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoChange}
+                    />
+                  </Button>
+                </Stack>
+              </Box>
+              {error && <Typography color="error" marginTop={1}>{error}</Typography>}
+
+              {/* Кнопки */}
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                pt={2}
+              >
                 <Button
                   variant="outlined"
-                  startIcon={<UploadIcon />}
-                  onClick={() => document.getElementById("photo")?.click()}
-                  fullWidth
+                  onClick={handleGenerateCredentials}
                 >
-                  {photoFile ? photoFile.name : "Выбрать фото"}
+                  Сгенерировать данные для входа
                 </Button>
-              </Box>
 
-              <Stack direction="row" spacing={2} justifyContent="flex-end">
-                <Button onClick={onClose}>Отмена</Button>
-                <Button variant="contained" onClick={handleSaveInfo}>
-                  Сохранить
-                </Button>
+                <Stack direction="row" spacing={2}>
+                  <Button onClick={handleClose}>Отмена</Button>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    form="editCoachForm"
+                  >
+                    Сохранить
+                  </Button>
+                </Stack>
               </Stack>
             </Stack>
           </Box>
-        )}
+        </Box>
+      )}
 
         {/* === Вкладка расписания === */}
         {tab === 1 && (
@@ -213,12 +326,9 @@ export function EditCoachDialog({ isOpen, onClose, coach }: EditCoachDialogProps
                       select
                       label="День недели"
                       SelectProps={{ native: true }}
-                      value={newSchedule.weekDay}
+                      value={weekDay}
                       onChange={(e) =>
-                        setNewSchedule({
-                          ...newSchedule,
-                          weekDay: Number(e.target.value),
-                        })
+                        setWeekDay(Number(e.target.value))
                       }
                     >
                       {daysOfWeek.map((d) => (
@@ -228,45 +338,48 @@ export function EditCoachDialog({ isOpen, onClose, coach }: EditCoachDialogProps
                       ))}
                     </TextField>
 
-                    <GridLegacy container spacing={2}>
-                      <GridLegacy item xs={6}>
-                        <TextField
-                          type="time"
+                    <Stack direction="row" spacing={2} alignItems="flex-start">
+                      <Box sx={{ flex: 1 }}>
+                        <TimePicker
                           label="Начало"
-                          value={newSchedule.startTime}
-                          onChange={(e) =>
-                            setNewSchedule({
-                              ...newSchedule,
-                              startTime: e.target.value,
-                            })
-                          }
-                          fullWidth
-                          InputLabelProps={{ shrink: true }}
+                          value={startTime}
+                          onChange={(newValue: Dayjs | null) => setStartTime(newValue)}
+                          format="HH:mm"
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              required: true,
+                            },
+                            actionBar: {
+                              actions: [] // Чтобы не было панели с "ОК" и "Отмена" 
+                            },
+                          }}
                         />
-                      </GridLegacy>
-                      <GridLegacy item xs={6}>
-                        <TextField
-                          type="time"
-                          label="Конец"
-                          value={newSchedule.endTime}
-                          onChange={(e) =>
-                            setNewSchedule({
-                              ...newSchedule,
-                              endTime: e.target.value,
-                            })
-                          }
-                          fullWidth
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      </GridLegacy>
-                    </GridLegacy>
+                      </Box>
 
+                      <Box sx={{ flex: 1 }}>
+                        <TimePicker
+                          label="Конец"
+                          minTime={startTime || undefined}
+                          value={endTime}
+                          onChange={(newValue: Dayjs | null) => setEndTime(newValue)}
+                          format="HH:mm"
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              required: true,
+                            },
+                          }}
+                        />
+                      </Box>
+                    </Stack>
+                    {scheduleError && <Typography color="error" marginTop={1}>{scheduleError}</Typography>}
                     <Button
                       variant="contained"
                       startIcon={<AddIcon />}
                       onClick={handleAddSchedule}
                       disabled={
-                        !newSchedule.startTime || !newSchedule.endTime
+                        !startTime || !endTime
                       }
                     >
                       Добавить
@@ -284,6 +397,8 @@ export function EditCoachDialog({ isOpen, onClose, coach }: EditCoachDialogProps
                 <Stack spacing={2}>
                   {daysOfWeek.map((day) => {
                     const list = getSchedulesForDay(day.value);
+                    if (!list)
+                      return null;
 
                     return (
                       <Card key={day.value}>
@@ -309,7 +424,7 @@ export function EditCoachDialog({ isOpen, onClose, coach }: EditCoachDialogProps
                                   <Stack direction="row" spacing={1}>
                                     <AccessTimeIcon fontSize="small" />
                                     <Typography>
-                                      {s.startTime} — {s.endTime}
+                                      {s.startTime!.substring(0, 5)} — {s.endTime!.substring(0, 5)}
                                     </Typography>
                                   </Stack>
 
