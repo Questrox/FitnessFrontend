@@ -7,8 +7,6 @@ import {
   Typography,
   Tabs,
   Tab,
-  Avatar,
-  Chip,
   CircularProgress,
   Button
 } from "@mui/material";
@@ -72,8 +70,9 @@ const ProfilePage = () => {
     }
   }
 
-  const fetchClient = async () => {
-    setIsLoading(true);
+  const fetchClient = async (showLoading = true) => {
+    if (showLoading)
+      setIsLoading(true);
     const currDate = new Date();
     try {
       let data : ClientDTO | undefined;
@@ -95,7 +94,7 @@ const ProfilePage = () => {
     setIsLoading(false);
   }
 
-  const handleCancelReservation = (
+  const handleReservationUpdate = (
     reservationId: number,
     updatedReservation: TrainingReservationDTO
   ) => {
@@ -240,10 +239,13 @@ const ProfilePage = () => {
         </Tabs>
 
         {/* Content */}
-        {activeTab === "profile" && <ProfileInfo client={client} setClient={setClient} membership={currentMembership} isAdminView={id != null && id != undefined} />}
+        {activeTab === "profile" && <ProfileInfo client={client} setClient={setClient} membership={currentMembership} isAdminView={id !== null && id !== undefined} />}
         {activeTab === "memberships" && <MembershipHistory memberships={client.memberships!} />}
-        {activeTab === "classes" && <ReservationHistory reservationsList={client.trainingReservations!}
-                                                        onCancel={handleCancelReservation} 
+        {activeTab === "classes" && <ReservationHistory client={client}
+                                                        fetchClient={fetchClient}
+                                                        isAdminView={id !== null && id !== undefined}
+                                                        reservationsList={client.trainingReservations!}
+                                                        onReservationUpdate={handleReservationUpdate} 
                                                         hideCancelled={hideCancelledClasses} 
                                                         setHideCancelled={setHideCancelledClasses}
                                                         hidePaid={hidePaidClasses}

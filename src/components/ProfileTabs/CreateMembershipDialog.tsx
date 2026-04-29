@@ -15,12 +15,12 @@ import {
 import Autocomplete from "@mui/material/Autocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import CreditCardIcon from "@mui/icons-material/CreditCard";
 import { useState } from "react";
 import { ClientDTO, CreateMembershipDTO, MembershipTypeDTO } from "../../api/g";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
 import { apiClient } from "../../api/apiClient";
+import { PaymentForm } from "./PaymentDialog";
 
 interface CreateMembershipDialogProps {
   open: boolean;
@@ -52,11 +52,6 @@ export const CreateMembershipDialog = ({
     const date = new Date(startDate.toISOString());
     date.setMonth(date.getMonth() + selectedMembershipType.duration!);
     return date;
-  };
-
-  const calculateFinalPrice = () => {
-    if (!selectedMembershipType) return 0;
-    return selectedMembershipType.price! - bonuses;
   };
 
   const handleNext = (e: React.FormEvent) => {
@@ -103,11 +98,6 @@ export const CreateMembershipDialog = ({
     setBonuses(0);
     setSelectedMembershipType(null);
   }
-
-  const handleSpendAllBonuses = () => {
-    const b = selectedClient.bonuses! > selectedMembershipType!.price! ? selectedMembershipType!.price! : selectedClient.bonuses!;
-    setBonuses(b);
-  };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
@@ -172,145 +162,61 @@ export const CreateMembershipDialog = ({
 
       {/* ШАГ 2 */}
       {step === "confirm" && selectedMembershipType && (
-        <>
-          <DialogTitle>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Button size="small" onClick={() => setStep("create")}>
-                <ArrowBackIcon />
-              </Button>
-              <Typography variant="h6">
-                Подтверждение оплаты
+      <PaymentForm
+        title="Подтверждение оплаты абонемента"
+        price={selectedMembershipType.price!}
+        cashbackPercentage={selectedMembershipType.cashbackPercentage!}
+        clientBonuses={selectedClient.bonuses!}
+
+        bonuses={bonuses}
+        setBonuses={setBonuses}
+
+        onConfirm={handleConfirm}
+        onBack={() => setStep("create")}
+
+        extraInfo={
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="h6" mb={2}>
+                Детали абонемента
               </Typography>
-            </Stack>
-          </DialogTitle>
 
-          <DialogContent>
-            <Stack spacing={3}>
-              {/* Membership Info */}
-              <Card variant="outlined">
-                <CardContent>
-                  <Typography variant="h6" mb={2}>
-                    Детали абонемента
+              <GridLegacy container spacing={2}>
+                <GridLegacy item xs={6}>
+                  <Typography variant="caption">Тип</Typography>
+                  <Typography fontWeight={600}>
+                    {selectedMembershipType.name}
                   </Typography>
+                </GridLegacy>
 
-                  <GridLegacy container spacing={2}>
-                    <GridLegacy item xs={6}>
-                      <Typography variant="caption">Тип</Typography>
-                      <Typography fontWeight={600}>
-                        {selectedMembershipType.name}
-                      </Typography>
-                    </GridLegacy>
-
-                    <GridLegacy item xs={6}>
-                      <Typography variant="caption">Длительность</Typography>
-                      <Typography fontWeight={600}>
-                        {selectedMembershipType.duration} мес.
-                      </Typography>
-                    </GridLegacy>
-
-                    <GridLegacy item xs={6}>
-                      <Typography variant="caption">Начало</Typography>
-                      <Typography fontWeight={600}>
-                        {new Date(
-                          startDate!.toISOString()
-                        ).toLocaleDateString()}
-                      </Typography>
-                    </GridLegacy>
-
-                    <GridLegacy item xs={6}>
-                      <Typography variant="caption">Окончание</Typography>
-                      <Typography fontWeight={600}>
-                        {calculateEndDate().toLocaleDateString()}
-                      </Typography>
-                    </GridLegacy>
-                  </GridLegacy>
-                </CardContent>
-              </Card>
-
-              {/* Payment */}
-              <Card variant="outlined">
-                <CardContent>
-                  <Typography variant="h6" mb={2}>
-                    Оплата
+                <GridLegacy item xs={6}>
+                  <Typography variant="caption">Длительность</Typography>
+                  <Typography fontWeight={600}>
+                    {selectedMembershipType.duration} мес.
                   </Typography>
+                </GridLegacy>
 
-                  <Stack spacing={2}>
-                    <Box display="flex" justifyContent="space-between">
-                      <Typography>Цена</Typography>
-                      <Typography fontWeight={600}>
-                        {selectedMembershipType.price}
-                      </Typography>
-                    </Box>
+                <GridLegacy item xs={6}>
+                  <Typography variant="caption">Начало</Typography>
+                  <Typography fontWeight={600}>
+                    {new Date(
+                      startDate!.toISOString()
+                    ).toLocaleDateString()}
+                  </Typography>
+                </GridLegacy>
 
-                    <TextField
-                      label={`Бонусы (доступно: ${selectedClient.bonuses})`}
-                      type="number"
-                      value={bonuses}
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        const value = raw === "" ? 0 : Number(raw);
-                        setBonuses(Math.max(0, Math.min(value, selectedClient.bonuses!)));
-                      }}
-                      slotProps={{
-                        htmlInput: {
-                          min: 0,
-                          max: selectedClient.bonuses,
-                          step: 1,
-                        },
-                      }}
-                    />
-
-                    <Button onClick={handleSpendAllBonuses}>
-                      Использовать все бонусы
-                    </Button>
-
-                    <Box display="flex" justifyContent="space-between">
-                      <Typography>Будет начислено бонусов</Typography>
-                      <Typography>
-                        {selectedMembershipType.price! / 100 * selectedMembershipType.cashbackPercentage!}
-                      </Typography>
-                    </Box>
-
-                    <Box display="flex" justifyContent="space-between">
-                      <Typography>Скидка</Typography>
-                      <Typography>
-                        -{bonuses}
-                      </Typography>
-                    </Box>
-
-                    <Box
-                      display="flex"
-                      justifyContent="space-between"
-                      mt={1}
-                    >
-                      <Typography variant="h6">
-                        Итого
-                      </Typography>
-                      <Typography variant="h6">
-                        {calculateFinalPrice()}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </CardContent>
-              </Card>
-              {error && <Typography color="error" marginTop={1}>{error}</Typography>}
-            </Stack>
-          </DialogContent>
-
-          <DialogActions>
-            <Button onClick={() => {setError(""); setStep("create")}}>
-              Назад
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleConfirm}
-              startIcon={<CreditCardIcon />}
-            >
-              Подтвердить оплату
-            </Button>
-          </DialogActions>
-        </>
-      )}
+                <GridLegacy item xs={6}>
+                  <Typography variant="caption">Окончание</Typography>
+                  <Typography fontWeight={600}>
+                    {calculateEndDate().toLocaleDateString()}
+                  </Typography>
+                </GridLegacy>
+              </GridLegacy>
+            </CardContent>
+          </Card>
+        }
+        error={error}
+      />)}
     </Dialog>
   );
 };

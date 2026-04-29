@@ -9,6 +9,7 @@ import {
   GridLegacy,
   Chip,
   Button,
+  Dialog,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
@@ -17,12 +18,18 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import PersonIcon from "@mui/icons-material/Person";
-import { TrainingReservationDTO } from "../../api/g";
+import PaymentIcon from '@mui/icons-material/Payment';
+import { ClientDTO, CreatePaymentDTO, TrainingReservationDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
+import { useState } from "react";
+import { PaymentForm } from "./PaymentDialog";
 
 interface ReservationHistoryProps {
+  client: ClientDTO;
+  fetchClient: (showLoading: boolean) => Promise<void>;
+  isAdminView: boolean;
   reservationsList: TrainingReservationDTO[];
-  onCancel: (reservationId: number, updatedReservation: TrainingReservationDTO) => void;
+  onReservationUpdate: (reservationId: number, updatedReservation: TrainingReservationDTO) => void;
   hideCancelled: boolean;
   setHideCancelled: (value: boolean) => void;
   hidePaid: boolean;
@@ -30,13 +37,21 @@ interface ReservationHistoryProps {
 }
 
 export function ReservationHistory({
+  client,
+  fetchClient,
+  isAdminView,
   reservationsList,
-  onCancel,
+  onReservationUpdate,
   hideCancelled,
   setHideCancelled,
   hidePaid,
   setHidePaid,
 }: ReservationHistoryProps) {
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState<TrainingReservationDTO | null>(null);
+  const [bonuses, setBonuses] = useState<number>(0); // бонусы для оплаты
+  const [paymentError, setPaymentError] = useState("");
+
   const statusLabels = {
     "Ожидание": "pending",
     "Посещена": "visited",
@@ -75,13 +90,41 @@ export function ReservationHistory({
     if (window.confirm(`Вы действительно хотите отменить эту запись?`)) {
       try {
         const result = await apiClient.cancelReservation(id);
-        onCancel(id, result);
+        onReservationUpdate(id, result);
       }
       catch (error)
       {
         console.error("Ошибка при отмене записи " + error);
       }
     }
+  }
+
+  
+  const handleGoToPayment = (reservation: TrainingReservationDTO) => {
+    setSelectedReservation(reservation || null);
+    setPaymentOpen(true);
+  };
+
+  const handleTrainingPayment = async () => {
+    const model = new CreatePaymentDTO();
+    model.cashbackPercentage = selectedReservation!.training!.cashbackPercentage;
+    model.price = selectedReservation!.training!.price!;
+    model.paidWithBonuses = bonuses;
+    model.clientId = client!.id;
+    try {
+      const result = await apiClient.confirmReservationPayment(selectedReservation!.id!, model);
+      await fetchClient(false);
+      handleClosePaymentDialog();
+    } catch (error: any) {
+      setPaymentError(error.message);
+    }
+  }
+
+  const handleClosePaymentDialog = () => {
+    setSelectedReservation(null);
+    setPaymentOpen(false);
+    setBonuses(0);
+    setPaymentError("");
   }
 
   return (
@@ -147,6 +190,9 @@ export function ReservationHistory({
             const dateOnly = startDate.toLocaleDateString("ru"); // например, "01.04.2026"
             const startTime = startDate.toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" }); // "19:00"
             const endTime = endDate.toLocaleTimeString("ru", { hour: "2-digit", minute: "2-digit" }); // "20:00"
+
+            // Определяем, нужно ли показывать кнопку "Перейти к оплате"
+            const showPaymentButton = isAdminView && reservation.reservationStatus?.id === 2;
 
             return (
               <GridLegacy item xs={12} md={6} key={reservation.id}>
@@ -230,9 +276,10 @@ export function ReservationHistory({
                       </Typography> */}
                     </Box>
 
-                    {/* Action */}
-                    {reservation.reservationStatus!.name === "Ожидание" && (
-                      <Box sx={{ mt: 2 }}>
+                    {/* Action Buttons */}
+                    <Stack spacing={2}>
+                      {/* Кнопка отмены для статуса "Ожидание" */}
+                      {reservation.reservationStatus!.name === "Ожидание" && (
                         <Button
                           fullWidth
                           variant="outlined"
@@ -242,8 +289,21 @@ export function ReservationHistory({
                         >
                           Отменить запись
                         </Button>
-                      </Box>
-                    )}
+                      )}
+
+                      {/* Кнопка перехода к оплате для администратора и статуса id=2 */}
+                      {showPaymentButton && (
+                        <Button
+                          fullWidth
+                          variant="outlined"
+                          color="primary"
+                          onClick={() => handleGoToPayment(reservation)}
+                          startIcon={<PaymentIcon />}
+                        >
+                          Перейти к оплате
+                        </Button>
+                      )}
+                    </Stack>
                   </CardContent>
                 </Card>
               </GridLegacy>
@@ -251,6 +311,95 @@ export function ReservationHistory({
           })
         )}
       </GridLegacy>
+      {selectedReservation && (
+      <Dialog open={paymentOpen} onClose={handleClosePaymentDialog} maxWidth="md" fullWidth>
+        <PaymentForm
+          title="Оплата тренировки"
+          price={selectedReservation!.training!.price!}
+          cashbackPercentage={selectedReservation!.training!.cashbackPercentage!}
+          clientBonuses={client!.bonuses!}
+
+          bonuses={bonuses}
+          setBonuses={setBonuses}
+
+          onConfirm={handleTrainingPayment}
+          onBack={handleClosePaymentDialog}
+
+          error={paymentError}
+
+          extraInfo={
+          <Card variant="outlined">
+            <CardContent>
+              <Typography variant="h6" mb={2}>
+                Детали тренировки
+              </Typography>
+
+              <GridLegacy container spacing={2}>
+                <GridLegacy item xs={6}>
+                  <Typography variant="caption">Тип</Typography>
+                  <Typography fontWeight={600}>
+                    {selectedReservation!.training!.trainingType!.name}
+                  </Typography>
+                </GridLegacy>
+
+                <GridLegacy item xs={6}>
+                  <Typography variant="caption">Тренер</Typography>
+                  <Typography fontWeight={600}>
+                    {selectedReservation!.training!.coach!.user!.fullName}
+                  </Typography>
+                </GridLegacy>
+
+                <GridLegacy item xs={6}>
+                  <Typography variant="caption">Дата</Typography>
+                  <Typography fontWeight={600}>
+                    {new Date(
+                      selectedReservation!.training!.startDate!
+                    ).toLocaleDateString()}
+                  </Typography>
+                </GridLegacy>
+
+                <GridLegacy item xs={6}>
+                  <Typography variant="caption">День недели</Typography>
+                  <Typography fontWeight={600}>
+                    {(() => {
+                      const d = new Date(
+                        selectedReservation!.training!.startDate!
+                      ).toLocaleDateString("ru", { weekday: "long" });
+                      return d.charAt(0).toUpperCase() + d.slice(1);
+                    })()}
+                  </Typography>
+                </GridLegacy>
+
+                <GridLegacy item xs={6}>
+                  <Typography variant="caption">Начало</Typography>
+                  <Typography fontWeight={600}>
+                    {new Date(
+                      selectedReservation!.training!.startDate!
+                    ).toLocaleTimeString("ru", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Typography>
+                </GridLegacy>
+
+                <GridLegacy item xs={6}>
+                  <Typography variant="caption">Окончание</Typography>
+                  <Typography fontWeight={600}>
+                    {new Date(
+                      selectedReservation!.training!.endDate!
+                    ).toLocaleTimeString("ru", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Typography>
+                </GridLegacy>
+              </GridLegacy>
+            </CardContent>
+          </Card>
+        }
+        />
+      </Dialog>
+    )}
     </Box>
   );
 }

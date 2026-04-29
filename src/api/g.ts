@@ -3093,6 +3093,51 @@ export class ApiClient {
     }
 
     /**
+     * @param body (optional) 
+     * @return OK
+     */
+    confirmReservationPayment(reservationId: number, body: CreatePaymentDTO | undefined): Promise<TrainingReservationDTO> {
+        let url_ = this.baseUrl + "/api/TrainingReservation/ConfirmReservationPayment/{reservationId}";
+        if (reservationId === undefined || reservationId === null)
+            throw new globalThis.Error("The parameter 'reservationId' must be defined.");
+        url_ = url_.replace("{reservationId}", encodeURIComponent("" + reservationId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processConfirmReservationPayment(_response);
+        });
+    }
+
+    protected processConfirmReservationPayment(response: Response): Promise<TrainingReservationDTO> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = TrainingReservationDTO.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TrainingReservationDTO>(null as any);
+    }
+
+    /**
      * @return OK
      */
     deleteReservation(id: number): Promise<void> {
@@ -4109,7 +4154,6 @@ export interface ICreateMembershipTypeDTO {
 }
 
 export class CreatePaymentDTO implements ICreatePaymentDTO {
-    date?: Date;
     price?: number;
     cashbackPercentage?: number;
     paidWithBonuses?: number;
@@ -4127,7 +4171,6 @@ export class CreatePaymentDTO implements ICreatePaymentDTO {
 
     init(_data?: any) {
         if (_data) {
-            this.date = _data["date"] ? new Date(_data["date"].toString()) : undefined as any;
             this.price = _data["price"];
             this.cashbackPercentage = _data["cashbackPercentage"];
             this.paidWithBonuses = _data["paidWithBonuses"];
@@ -4145,7 +4188,6 @@ export class CreatePaymentDTO implements ICreatePaymentDTO {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["date"] = this.date ? this.date.toISOString() : undefined as any;
         data["price"] = this.price;
         data["cashbackPercentage"] = this.cashbackPercentage;
         data["paidWithBonuses"] = this.paidWithBonuses;
@@ -4156,7 +4198,6 @@ export class CreatePaymentDTO implements ICreatePaymentDTO {
 }
 
 export interface ICreatePaymentDTO {
-    date?: Date;
     price?: number;
     cashbackPercentage?: number;
     paidWithBonuses?: number;
