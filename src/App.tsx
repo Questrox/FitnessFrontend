@@ -20,12 +20,15 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import "dayjs/locale/ru";
 import { NotificationsManagement } from './components/AdminTabs/NotificationsManagement';
 import { CoachManagement } from './components/AdminTabs/CoachManagement';
+import dayjs from 'dayjs';
 
 enum UserRole {
   Admin = "Admin",
   User = "User",
   Coach = "Coach"
 }
+
+dayjs.locale("ru");
 
 const ProtectedRoute: React.FC<{ children: React.ReactElement, allowedRoles?: string[] }> = ({
   children,

@@ -2542,6 +2542,49 @@ export class ApiClient {
     }
 
     /**
+     * @param body (optional) 
+     * @return OK
+     */
+    checkIndividualTrainingCreationPossibility(body: CreateIndividualTrainingDTO | undefined): Promise<string> {
+        let url_ = this.baseUrl + "/api/Training/CheckIndividualTrainingCreationPossibility";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCheckIndividualTrainingCreationPossibility(_response);
+        });
+    }
+
+    protected processCheckIndividualTrainingCreationPossibility(response: Response): Promise<string> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : null as any;
+    
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string>(null as any);
+    }
+
+    /**
      * @param start (optional) 
      * @param end (optional) 
      * @return OK
@@ -2660,6 +2703,48 @@ export class ApiClient {
     }
 
     protected processAddTraining(response: Response): Promise<TrainingDTO> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = TrainingDTO.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TrainingDTO>(null as any);
+    }
+
+    /**
+     * @param body (optional) 
+     * @return OK
+     */
+    addIndividualTraining(body: CreateIndividualTrainingDTO | undefined): Promise<TrainingDTO> {
+        let url_ = this.baseUrl + "/api/Training/AddIndividualTraining";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(body);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAddIndividualTraining(_response);
+        });
+    }
+
+    protected processAddIndividualTraining(response: Response): Promise<TrainingDTO> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3229,6 +3314,50 @@ export class ApiClient {
     }
 
     protected processGetTrainingTypes(response: Response): Promise<TrainingTypeDTO[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TrainingTypeDTO.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TrainingTypeDTO[]>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    getTrainingTypesForCreation(): Promise<TrainingTypeDTO[]> {
+        let url_ = this.baseUrl + "/api/TrainingType/GetTrainingTypesForCreation";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetTrainingTypesForCreation(_response);
+        });
+    }
+
+    protected processGetTrainingTypesForCreation(response: Response): Promise<TrainingTypeDTO[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -4047,6 +4176,50 @@ export interface ICreateCoachScheduleDTO {
     startTime?: string;
     endTime?: string;
     coachId?: number;
+}
+
+export class CreateIndividualTrainingDTO implements ICreateIndividualTrainingDTO {
+    startDate?: Date;
+    trainingTypeId?: number;
+    clientId?: number;
+
+    constructor(data?: ICreateIndividualTrainingDTO) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
+            this.trainingTypeId = _data["trainingTypeId"];
+            this.clientId = _data["clientId"];
+        }
+    }
+
+    static fromJS(data: any): CreateIndividualTrainingDTO {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateIndividualTrainingDTO();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["startDate"] = this.startDate ? this.startDate.toISOString() : undefined as any;
+        data["trainingTypeId"] = this.trainingTypeId;
+        data["clientId"] = this.clientId;
+        return data;
+    }
+}
+
+export interface ICreateIndividualTrainingDTO {
+    startDate?: Date;
+    trainingTypeId?: number;
+    clientId?: number;
 }
 
 export class CreateMembershipDTO implements ICreateMembershipDTO {

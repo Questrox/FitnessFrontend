@@ -20,6 +20,8 @@ import { apiClient } from "../../api/apiClient";
 import { CreateTrainingDialog } from "../TrainingModals/CreateTrainingDialog";
 import { useAuth } from "../../context/AuthContext";
 import { TrainingDetails } from "../TrainingModals/TrainingDetails";
+import { CreateIndividualTrainingDialog } from "../TrainingModals/CreateIndividualTrainingDialog";
+import dayjs, { Dayjs } from "dayjs";
 
 export function SchedulePage() {
   const [selectedDay, setSelectedDay] = useState("");
@@ -44,17 +46,43 @@ export function SchedulePage() {
     "18:00","19:00","20:00","21:00","22:00","23:00"
   ];
 
+  // Получение даты по выбранному дню
+  const getDateFromSelectedDay = (): Dayjs | null => {
+    const dayIndex = daysOfWeek.indexOf(selectedDay);
+    if (dayIndex === -1) return null;
+
+    const today = new Date();
+    const currentDay = today.getDay(); // 0 = Sunday ... 6 = Saturday
+
+    // Понедельник текущей недели
+    const monday = new Date(today);
+    const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
+    monday.setDate(today.getDate() + diffToMonday);
+
+    // Сдвиг на нужную неделю
+    monday.setDate(monday.getDate() + selectedWeek * 7);
+
+    // Выбранный день недели
+    const result = new Date(monday);
+    result.setDate(monday.getDate() + dayIndex);
+    result.setHours(0, 0, 0, 0); 
+    return dayjs(result);
+  };
+
   useEffect(() => {
     (async () => {
       // Вычисляем текущий день, т.к. getDay возвращает число от 0 до 6, где 0 - воскресенье, 1 - понедельник и т.д.
       setSelectedDay(daysOfWeek[(new Date().getDay() + 6) % 7]);
-      try {
-        const types = await apiClient.getTrainingTypes();
-        setTrainingTypes(types);
-      }
-      catch (error)
+      if (userRole === "Admin" || userRole === "Coach")
       {
-        console.error("Ошибка при загрузке начальных данных: " + error);
+        try {
+          const types = await apiClient.getTrainingTypesForCreation();
+          setTrainingTypes(types);
+        }
+        catch (error)
+        {
+          console.error("Ошибка при загрузке типов тренировок: " + error);
+        }
       }
       setIsLoading(false);
     })();
@@ -326,12 +354,22 @@ export function SchedulePage() {
         )}
 
       </Container>
+      {userRole === "Admin" && 
       <CreateTrainingDialog
         isOpen={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
         trainingTypes={trainingTypes}
         onSuccess={onSuccess}
-      />
+        selectedDay={getDateFromSelectedDay()}
+      />}
+      {userRole === "Coach" && 
+      <CreateIndividualTrainingDialog
+        isOpen={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        trainingTypes={trainingTypes}
+        onSuccess={onSuccess}
+        selectedDay={getDateFromSelectedDay()}
+      />}
       <TrainingDetails
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
