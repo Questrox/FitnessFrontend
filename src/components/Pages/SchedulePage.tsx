@@ -376,7 +376,7 @@ export function SchedulePage() {
         training={selectedTraining}
         setTraining={setSelectedTraining}
         onCreateReservationSuccess={fetchWeekTrainings}
-        onCancelTrainingSuccess={onSuccess}
+        onCancelOrCompleteTraining={onSuccess}
       />
     </Box>
   );

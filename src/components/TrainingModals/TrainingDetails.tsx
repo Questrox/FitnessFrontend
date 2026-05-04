@@ -9,13 +9,16 @@ import {
   Divider,
   Chip,
   CircularProgress,
+  Tab,
+  Tabs,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
-import { ClientDTO, CreateTrainingReservationDTO, TrainingDTO } from "../../api/g";
+import { ClientDTO, CreateTrainingReservationDTO, ReservationForTrainingDTO, TrainingDTO } from "../../api/g";
 import { useAuth } from "../../context/AuthContext";
 import { useEffect, useState } from "react";
 import { apiClient } from "../../api/apiClient";
 import { ClientSelectDialog } from "./ClientSelectDialog";
+import { TrainingAttendanceList } from "./TrainingAttendanceList";
 
 interface TrainingModalProps {
   isOpen: boolean;
@@ -23,11 +26,12 @@ interface TrainingModalProps {
   training: TrainingDTO | null;
   setTraining: React.Dispatch<React.SetStateAction<TrainingDTO | null>>;
   onCreateReservationSuccess: () => Promise<void>
-  onCancelTrainingSuccess: (startDate: Date) => Promise<void>;
+  onCancelOrCompleteTraining: (startDate: Date) => Promise<void>;
 }
 
-export function TrainingDetails({ isOpen, onClose, training, setTraining, onCreateReservationSuccess, onCancelTrainingSuccess }: TrainingModalProps) {
+export function TrainingDetails({ isOpen, onClose, training, setTraining, onCreateReservationSuccess, onCancelOrCompleteTraining }: TrainingModalProps) {
   const theme = useTheme();
+  const [tab, setTab] = useState<"details" | "attendance">("details");
 
   const { userRole } = useAuth();
   const [message, setMessage] = useState("");
@@ -35,27 +39,45 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState<"details" | "selectClient">("details");
   const [selectedClient, setSelectedClient] = useState<ClientDTO | null>(null);
+  
+  const [reservations, setReservations] = useState<ReservationForTrainingDTO[] | null>(null);
 
   const canBook = message === "";
 
   useEffect(() => {
     if (!isOpen) {
+      setTab("details");
       setMessage("");
       setCancelError("");
       setIsLoading(true);
       setSelectedClient(null);
+      setReservations(null);
+    }
+    if (isOpen && (userRole === "Admin" || userRole === "Coach")) {
+      fetchReservations();
     }
   }, [isOpen]);
+
+  const fetchReservations = async () => {
+    try {
+      const res = await apiClient.getReservationsByTrainingId(training!.id!);
+      setReservations(res);
+    } catch (error: any) {
+      console.error("Ошибка при загрузке записей: ", error.message);
+    }
+  }
 
   useEffect(() => {
     if (!training || !isOpen) return;
     if (userRole === "Admin" && selectedClient === null) return;
     if (training.trainingStatusId === 3) return;
+    if (userRole === "Coach") return;
 
     checkReservationCreation();
   }, [training, isOpen, selectedClient]);
 
   const checkReservationCreation = async () => {
+    console.log(selectedClient)
     if (isFull)
     {
       setIsLoading(false);
@@ -92,7 +114,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
         const result = await apiClient.cancelTraining(training!.id!);
         setTraining(result);
         setCancelError("");
-        await onCancelTrainingSuccess(result!.startDate!);
+        await onCancelOrCompleteTraining(result!.startDate!);
       } catch (error: any)
       {
         const message = error.message.split(": ")[1];
@@ -142,11 +164,38 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
       training.reservationsCount = (training.reservationsCount ?? 0) + 1;
       await checkReservationCreation();
       await onCreateReservationSuccess();
-      //onClose();
+      if (reservations)
+      {
+        await fetchReservations();
+      }
     }
     catch (error: any)
     {
       setMessage(error.message);
+    }
+  }
+
+  const onConfirmAttendance = async (resId: number) => {
+    try {
+      const result = await apiClient.confirmTrainingAttendance(resId);
+      const updatedReservations = reservations!.map(res => res.id === resId ? result : res);
+      setReservations(updatedReservations);
+      console.log(result);
+    } catch (error: any) {
+      alert(error.message);
+    }
+  }
+
+  const onMarkCompleted = async () => {
+    if (window.confirm("Вы уверены, что отметили всех клиентов?"))
+    {
+      try {
+        const result = await apiClient.completeTraining(training.id!);
+        setTraining(result);
+        await onCancelOrCompleteTraining(result.startDate!);
+      } catch (error: any) {
+        alert(error);
+      }
     }
   }
 
@@ -156,8 +205,19 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
       <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>
         {trainingType.name}
       </DialogTitle>
+      {(userRole === "Coach" || userRole === "Admin") && (
+      <Tabs
+        value={tab}
+        onChange={(_, v) => setTab(v)}
+        sx={{ px: 3 }}
+      >
+        <Tab label="Информация" value="details" />
+        <Tab label="Клиенты" value="attendance" />
+      </Tabs>
+    )}
 
       <DialogContent>
+        {tab === "details" && (
         <Stack spacing={3}>
           {/* Основная информация */}
           <Stack spacing={2}>
@@ -299,6 +359,15 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
             </Button>
           </Stack>
         </Stack>
+      )}
+      {tab === "attendance" && (userRole === "Coach" || userRole === "Admin") && (
+      <TrainingAttendanceList
+        training={training}
+        reservations={reservations}
+        onConfirmAttendance={onConfirmAttendance}
+        onMarkCompleted={onMarkCompleted}
+      />
+      )}
       </DialogContent>
     </Dialog>
     <ClientSelectDialog

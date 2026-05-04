@@ -2850,6 +2850,46 @@ export class ApiClient {
     /**
      * @return OK
      */
+    completeTraining(id: number): Promise<TrainingDTO> {
+        let url_ = this.baseUrl + "/api/Training/CompleteTraining/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "PUT",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCompleteTraining(_response);
+        });
+    }
+
+    protected processCompleteTraining(response: Response): Promise<TrainingDTO> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = TrainingDTO.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TrainingDTO>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
     getTrainingsWithNotifications(): Promise<TrainingWithNotificationsDTO[]> {
         let url_ = this.baseUrl + "/api/Training/GetTrainingsWithNotifications";
         url_ = url_.replace(/[?&]$/, "");
@@ -3051,6 +3091,53 @@ export class ApiClient {
     }
 
     /**
+     * @return OK
+     */
+    getReservationsByTrainingId(trainingId: number): Promise<ReservationForTrainingDTO[]> {
+        let url_ = this.baseUrl + "/api/TrainingReservation/GetReservationsByTrainingId/{trainingId}";
+        if (trainingId === undefined || trainingId === null)
+            throw new globalThis.Error("The parameter 'trainingId' must be defined.");
+        url_ = url_.replace("{trainingId}", encodeURIComponent("" + trainingId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetReservationsByTrainingId(_response);
+        });
+    }
+
+    protected processGetReservationsByTrainingId(response: Response): Promise<ReservationForTrainingDTO[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ReservationForTrainingDTO.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ReservationForTrainingDTO[]>(null as any);
+    }
+
+    /**
      * @param body (optional) 
      * @return OK
      */
@@ -3090,6 +3177,46 @@ export class ApiClient {
             });
         }
         return Promise.resolve<TrainingReservationDTO>(null as any);
+    }
+
+    /**
+     * @return OK
+     */
+    confirmTrainingAttendance(resId: number): Promise<ReservationForTrainingDTO> {
+        let url_ = this.baseUrl + "/api/TrainingReservation/ConfirmTrainingAttendance/{resId}";
+        if (resId === undefined || resId === null)
+            throw new globalThis.Error("The parameter 'resId' must be defined.");
+        url_ = url_.replace("{resId}", encodeURIComponent("" + resId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "PUT",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processConfirmTrainingAttendance(_response);
+        });
+    }
+
+    protected processConfirmTrainingAttendance(response: Response): Promise<ReservationForTrainingDTO> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ReservationForTrainingDTO.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ReservationForTrainingDTO>(null as any);
     }
 
     /**
@@ -4814,6 +4941,54 @@ export interface IRegisterModel {
     phoneNumber?: string | undefined;
     userName?: string | undefined;
     password?: string | undefined;
+}
+
+export class ReservationForTrainingDTO implements IReservationForTrainingDTO {
+    id?: number;
+    reservationStatusId?: number;
+    reservationStatus?: ReservationStatusDTO;
+    user?: UserDTO;
+
+    constructor(data?: IReservationForTrainingDTO) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.reservationStatusId = _data["reservationStatusId"];
+            this.reservationStatus = _data["reservationStatus"] ? ReservationStatusDTO.fromJS(_data["reservationStatus"]) : undefined as any;
+            this.user = _data["user"] ? UserDTO.fromJS(_data["user"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): ReservationForTrainingDTO {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReservationForTrainingDTO();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["reservationStatusId"] = this.reservationStatusId;
+        data["reservationStatus"] = this.reservationStatus ? this.reservationStatus.toJSON() : undefined as any;
+        data["user"] = this.user ? this.user.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IReservationForTrainingDTO {
+    id?: number;
+    reservationStatusId?: number;
+    reservationStatus?: ReservationStatusDTO;
+    user?: UserDTO;
 }
 
 export class ReservationStatusDTO implements IReservationStatusDTO {
