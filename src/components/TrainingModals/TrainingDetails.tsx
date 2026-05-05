@@ -33,7 +33,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
   const theme = useTheme();
   const [tab, setTab] = useState<"details" | "attendance">("details");
 
-  const { userRole } = useAuth();
+  const { userRole, user } = useAuth();
   const [message, setMessage] = useState("");
   const [cancelError, setCancelError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -43,6 +43,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
   const [reservations, setReservations] = useState<ReservationForTrainingDTO[] | null>(null);
 
   const canBook = message === "";
+  const canCancel = (userRole === "Admin" || training?.coach?.userId === user?.userId && training?.trainingType?.maxClients === 1) && training?.trainingStatusId === 1;
 
   useEffect(() => {
     if (!isOpen) {
@@ -327,7 +328,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
               </Button>
             )}
 
-            {userRole === "Admin" && training?.trainingStatusId === 1 && (
+            {canCancel && (
               <Button
                 fullWidth
                 variant="outlined"

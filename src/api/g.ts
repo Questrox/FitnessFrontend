@@ -4683,6 +4683,7 @@ export class LoginResult implements ILoginResult {
     token?: string | undefined;
     userName?: string | undefined;
     userRole?: string | undefined;
+    userId?: string | undefined;
 
     constructor(data?: ILoginResult) {
         if (data) {
@@ -4698,6 +4699,7 @@ export class LoginResult implements ILoginResult {
             this.token = _data["token"];
             this.userName = _data["userName"];
             this.userRole = _data["userRole"];
+            this.userId = _data["userId"];
         }
     }
 
@@ -4713,6 +4715,7 @@ export class LoginResult implements ILoginResult {
         data["token"] = this.token;
         data["userName"] = this.userName;
         data["userRole"] = this.userRole;
+        data["userId"] = this.userId;
         return data;
     }
 }
@@ -4721,6 +4724,7 @@ export interface ILoginResult {
     token?: string | undefined;
     userName?: string | undefined;
     userRole?: string | undefined;
+    userId?: string | undefined;
 }
 
 export class MembershipDTO implements IMembershipDTO {

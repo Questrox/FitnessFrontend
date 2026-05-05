@@ -49,12 +49,13 @@ export function CreateTrainingBase({
         minDateTime={dayjs()}
         value={startDateTime}
         onChange={(newValue) => setStartDateTime(newValue)}
+        format="DD.MM.YYYY HH:mm (dddd)"
         slotProps={{
           textField: { fullWidth: true },
         }}
       />
 
-      {/* День недели */}
+      {/* День недели
       <TextField
         label="День недели"
         value={
@@ -64,14 +65,14 @@ export function CreateTrainingBase({
         }
         InputProps={{ readOnly: true }}
         fullWidth
-      />
+      /> */}
 
       {/* Конец */}
       <TextField
         label="Дата и время окончания"
         value={
           endDateTime
-            ? endDateTime.format("DD.MM.YYYY HH:mm")
+            ? endDateTime.format("DD.MM.YYYY HH:mm (dddd)")
             : ""
         }
         InputProps={{ readOnly: true }}

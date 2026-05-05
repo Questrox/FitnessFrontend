@@ -10,7 +10,9 @@ import {
   IconButton,
   GridLegacy,
   CircularProgress,
-  Divider
+  Divider,
+  Checkbox,
+  FormControlLabel
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -32,8 +34,9 @@ export function SchedulePage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedTraining, setSelectedTraining] = useState<TrainingDTO | null>(null);
+  const [showPersonal, setShowPersonal] = useState(false);
 
-  const { userRole } = useAuth();
+  const { userRole, user } = useAuth();
 
   const daysOfWeek = [
     "Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"
@@ -86,7 +89,7 @@ export function SchedulePage() {
       }
       setIsLoading(false);
     })();
-  }, [])
+  }, [userRole])
   
   useEffect(() => {
     fetchWeekTrainings();
@@ -160,7 +163,7 @@ export function SchedulePage() {
 
       const timeHour = parseInt(time.split(":")[0]);
 
-      return start.getHours() === timeHour;
+      return start.getHours() === timeHour && (showPersonal ? training?.coach?.userId === user?.userId : true);
     });
   };
 
@@ -205,6 +208,7 @@ export function SchedulePage() {
             </Button>
           }
         </Stack>
+        
 
         {/* Week selector */}
         <Card sx={{ mb: 3 }}>
@@ -233,7 +237,7 @@ export function SchedulePage() {
         </Card>
 
         {/* Day selector */}
-        <Stack direction="row" spacing={1} sx={{ mb: 3, overflowX: "auto" }}>
+        <Stack direction="row" spacing={1} sx={{ mb: 1, overflowX: "auto" }}>
           {daysOfWeek.map((day) => (
             <Button
               key={day}
@@ -244,6 +248,16 @@ export function SchedulePage() {
             </Button>
           ))}
         </Stack>
+        {userRole === "Coach" && 
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={showPersonal}
+              onChange={(e) => setShowPersonal(e.target.checked)}
+            />
+          }
+          label="Показывать только мои тренировки"
+        />}
 
         {/* Schedule */}
         {isLoading ? (
@@ -267,7 +281,7 @@ export function SchedulePage() {
             </CardContent>
           </Card>
         ) : (
-          <Stack spacing={3}>
+          <Stack spacing={3} mt={3}>
             {timeSlots.map((time) => {
               const dayTrainings = getTrainingsForDayAndTime(selectedDay, time);
 
@@ -293,7 +307,7 @@ export function SchedulePage() {
                       });
 
                       if (!type || !coach) return null;
-
+                      
                       const spotsLeft =
                         type.maxClients! - training!.reservationsCount!;
                       const isFull = spotsLeft <= 0;

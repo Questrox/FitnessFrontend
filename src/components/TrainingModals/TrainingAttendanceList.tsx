@@ -26,7 +26,7 @@ export function TrainingAttendanceList({
   onMarkCompleted,
 }: TrainingAttendanceListProps) {
 
-  const { userRole } = useAuth();
+  const { userRole, user } = useAuth();
   
   if (!reservations)
     return <CircularProgress />
@@ -106,7 +106,7 @@ export function TrainingAttendanceList({
                         res.reservationStatusId === 2 ? "inherit" : "primary"
                       }
                       onClick={() => onConfirmAttendance(res.id!)}
-                      disabled={res.reservationStatusId === 2 || userRole !== "Coach" || training.trainingStatusId !== 1}
+                      disabled={res.reservationStatusId === 2 || userRole !== "Coach" || training.trainingStatusId !== 1 || training.coach?.userId !== user?.userId}
                     >
                       {res.reservationStatusId === 2
                         ? "Посещение отмечено"
@@ -133,7 +133,7 @@ export function TrainingAttendanceList({
             fullWidth
             variant="contained"
             color="success"
-            disabled={userRole !== "Coach" || training.trainingStatusId !== 1}
+            disabled={userRole !== "Coach" || training.trainingStatusId !== 1 || training.coach?.userId !== user?.userId}
             onClick={onMarkCompleted}
           >
             {training.trainingStatusId === 1 ? "Завершить тренировку" : "Тренировка проведена"}
