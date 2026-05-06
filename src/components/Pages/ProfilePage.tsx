@@ -76,7 +76,7 @@ const ProfilePage = () => {
         const data = await apiClient.getCurrentUser();
         setUser(data);
       } catch (error: any) {
-        console.error("Ошибка при загрузке текущего пользователя: ", error);
+        console.error("Ошибка при загрузке текущего пользователя: ", error.message);
       }
       setIsLoading(false);
     }

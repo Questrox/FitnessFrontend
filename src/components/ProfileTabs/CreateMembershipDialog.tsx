@@ -10,13 +10,15 @@ import {
   GridLegacy,
   Card,
   CardContent,
-  Stack
+  Stack,
+  Alert,
+  CircularProgress
 } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { useState } from "react";
-import { ClientDTO, CreateMembershipDTO, MembershipTypeDTO } from "../../api/g";
+import { useEffect, useState } from "react";
+import { ClientDTO, CreateMembershipDTO, MembershipDTO, MembershipTypeDTO } from "../../api/g";
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
 import { apiClient } from "../../api/apiClient";
@@ -42,9 +44,29 @@ export const CreateMembershipDialog = ({
   onSuccess
 }: CreateMembershipDialogProps) => {
   const [step, setStep] = useState<"create" | "confirm">("create");
+  const [overlaps, setOverlaps] = useState<MembershipDTO[]>([]);
   const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
   const [selectedMembershipType, setSelectedMembershipType] = useState<MembershipTypeDTO | null>(null);
   const [bonuses, setBonuses] = useState<number>(0);
+  const [isCheckingOverlaps, setIsCheckingOverlaps] = useState(false);
+
+  useEffect(() => {
+    if (!selectedClient || !selectedMembershipType || !startDate || !open)
+      return;
+    fetchOverlaps();
+  }, [startDate, selectedMembershipType])
+
+  const fetchOverlaps = async () => {
+    setIsCheckingOverlaps(true);
+    try {
+      const data = await apiClient.checkMembershipOverlap(selectedClient?.id, selectedMembershipType?.id, startDate?.toDate());
+      setOverlaps(data);
+    } catch (error: any) {
+      console.error("Ошибка при проверке наличия пересекающихся абонементов: ", error.message)
+    }
+    setIsCheckingOverlaps(false);
+  }
+
   if (!selectedClient)
     return null;
 
@@ -58,6 +80,7 @@ export const CreateMembershipDialog = ({
 
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isCheckingOverlaps) return;
     if (!selectedMembershipType)
     {
       setError("Необходимо выбрать тип абонемента");
@@ -99,9 +122,8 @@ export const CreateMembershipDialog = ({
     setStartDate(dayjs());
     setBonuses(0);
     setSelectedMembershipType(null);
+    setOverlaps([]);
   }
-
-  
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
@@ -146,6 +168,21 @@ export const CreateMembershipDialog = ({
                     },
                     }}
                 />
+                {overlaps.length > 0 && (
+                  <Alert severity="warning">
+                    <Typography fontWeight={600}>
+                      У клиента уже есть абонементы в этот период:
+                    </Typography>
+
+                    {overlaps.map((m) => (
+                      <Typography key={m.id} variant="body2">
+                        • {m.membershipType?.name} (
+                        {new Date(m.startDate!).toLocaleDateString()} –{" "}
+                        {new Date(m.endDate!).toLocaleDateString()})
+                      </Typography>
+                    ))}
+                  </Alert>
+                )}
               </Stack>
               {error && <Typography color="error" marginTop={1}>{error}</Typography>}
             </Box>
@@ -156,7 +193,14 @@ export const CreateMembershipDialog = ({
             <Button
               variant="contained"
               onClick={handleNext}
-              endIcon={<ChevronRightIcon />}
+              endIcon={
+                isCheckingOverlaps ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  <ChevronRightIcon />
+                )
+              }
+              disabled={isCheckingOverlaps}
             >
               Далее
             </Button>
