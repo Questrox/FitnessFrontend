@@ -25,7 +25,7 @@ import { useState } from "react";
 import { PaymentForm } from "./PaymentDialog";
 
 interface ReservationHistoryProps {
-  client: ClientDTO;
+  client: ClientDTO | undefined;
   fetchClient: (showLoading: boolean) => Promise<void>;
   isAdminView: boolean;
   reservationsList: TrainingReservationDTO[];
@@ -51,6 +51,8 @@ export function ReservationHistory({
   const [selectedReservation, setSelectedReservation] = useState<TrainingReservationDTO | null>(null);
   const [bonuses, setBonuses] = useState<number>(0); // бонусы для оплаты
   const [paymentError, setPaymentError] = useState("");
+  if (!client)
+    return null;
 
   const statusLabels = {
     "Ожидание": "pending",

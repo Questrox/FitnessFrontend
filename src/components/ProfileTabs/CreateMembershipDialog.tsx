@@ -26,7 +26,7 @@ interface CreateMembershipDialogProps {
   open: boolean;
   onClose: () => void;
   membershipTypes: MembershipTypeDTO[];
-  selectedClient: ClientDTO;
+  selectedClient: ClientDTO | undefined;
   error: string | null;
   setError: (str: string) => void;
   onSuccess: () => void;
@@ -45,6 +45,8 @@ export const CreateMembershipDialog = ({
   const [startDate, setStartDate] = useState<Dayjs | null>(dayjs());
   const [selectedMembershipType, setSelectedMembershipType] = useState<MembershipTypeDTO | null>(null);
   const [bonuses, setBonuses] = useState<number>(0);
+  if (!selectedClient)
+    return null;
 
   const calculateEndDate = () => {
     if (!selectedMembershipType || !startDate) return new Date();
@@ -98,6 +100,8 @@ export const CreateMembershipDialog = ({
     setBonuses(0);
     setSelectedMembershipType(null);
   }
+
+  
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>

@@ -5,42 +5,50 @@ import {
   CardHeader,
   Typography,
   Button,
-  GridLegacy,
   Stack,
   Dialog,
   DialogTitle,
   DialogContent,
   TextField,
-  DialogActions
+  DialogActions,
+  Divider,
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import PhoneIcon from "@mui/icons-material/Phone";
-import EmailIcon from "@mui/icons-material/Email";
 import EditIcon from "@mui/icons-material/Edit";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import { ChangePasswordModel, ClientDTO, LoginResult, MembershipDTO, UserDTO } from "../../api/g";
+import { ChangePasswordModel,  MembershipDTO, UserDTO } from "../../api/g";
 import { useState, useEffect } from "react";
 import { apiClient } from "../../api/apiClient";
-import { PhoneRounded } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
+import ErrorIcon from "@mui/icons-material/Error";
+import {
+  Alert,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
 
 interface Props {
-  client: ClientDTO;
-  setClient: (value: ClientDTO) => void;
+  currUser: UserDTO | undefined;
+  clientBonuses: number | undefined;
+  setUser: (value: UserDTO) => void;
   membership?: MembershipDTO;
   isAdminView: boolean
 }
 
-export function ProfileInfo({ client, setClient, membership, isAdminView }: Props) {
-  const { user, updateUserName } = useAuth();
+export function ProfileInfo({ currUser, clientBonuses, setUser, membership, isAdminView }: Props) {
+  const { user, userRole, updateUserName } = useAuth();
   const [error, setError] = useState("");
   const [dialogError, setDialogError] = useState("");
   const [editData, setEditData] = useState({
-    fullName: client.user!.fullName,
-    userName: client.user!.userName,
-    phoneNumber: client.user!.phoneNumber,
+    fullName: currUser!.fullName,
+    userName: currUser!.userName,
+    phoneNumber: currUser!.phoneNumber,
   });
   const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
 
@@ -55,24 +63,26 @@ export function ProfileInfo({ client, setClient, membership, isAdminView }: Prop
     phoneNumber: false,
   });
 
+  const viewClientInfo = userRole === "User" || userRole === "Admin" && isAdminView;
+
   useEffect(() => {
-    if (client) {
+    if (currUser) {
       setEditData({
-        fullName: client.user!.fullName,
-        userName: client.user!.userName,
-        phoneNumber: client.user!.phoneNumber,
+        fullName: currUser!.fullName,
+        userName: currUser!.userName,
+        phoneNumber: currUser!.phoneNumber,
       });
     }
-  }, [client]);
+  }, [currUser]);
 
   // Проверка наличия изменений
   const hasChanges =
-    editData.fullName !== client.user!.fullName ||
-    editData.userName !== client.user!.userName ||
-    editData.phoneNumber !== client.user!.phoneNumber;
+    editData.fullName !== currUser!.fullName ||
+    editData.userName !== currUser!.userName ||
+    editData.phoneNumber !== currUser!.phoneNumber;
 
   const handleSave = async () => {
-    if (!client.user)
+    if (!currUser)
       return;
     if (!editData.fullName)
     {
@@ -93,26 +103,26 @@ export function ProfileInfo({ client, setClient, membership, isAdminView }: Prop
     data.fullName = editData.fullName;
     data.userName = editData.userName;
     data.phoneNumber = editData.phoneNumber;
-    data.email = client.user.email;
-    data.id = client.user.id;
+    data.email = currUser.email;
+    data.id = currUser.id;
     try {
-      await apiClient.updateUser(client.user!.id!, data);
+      await apiClient.updateUser(currUser!.id!, data);
       setEditMode({
         fullName: false,
         userName: false,
         phoneNumber: false,
       });
       
-      if (!isAdminView && user!.userName != editData.userName) 
+      if (!isAdminView && user!.userName !== editData.userName) 
       {
         updateUserName(editData.userName);
       }
 
-      const updatedClient = new ClientDTO(client);
-      updatedClient.user!.fullName = editData.fullName;
-      updatedClient.user!.userName = editData.userName;
-      updatedClient.user!.phoneNumber = editData.phoneNumber;
-      setClient(updatedClient);
+      const updatedUser = new UserDTO(currUser);
+      updatedUser!.fullName = editData.fullName;
+      updatedUser!.userName = editData.userName;
+      updatedUser!.phoneNumber = editData.phoneNumber;
+      setUser(updatedUser);
       setError("");
     } catch (error: any) {
       const message = error.message.split(": ")[1];
@@ -148,10 +158,21 @@ export function ProfileInfo({ client, setClient, membership, isAdminView }: Prop
   }
 
   return (
-    <GridLegacy container spacing={4}>
+    <Stack
+      direction={{ xs: "column", lg: "row" }}
+      spacing={4}
+      justifyContent="center"
+      alignItems="stretch"
+    >
       {/* Личная информация */}
-      <GridLegacy item xs={12} lg={6}>
-        <Card>
+      <Box
+        sx={{
+          flex: viewClientInfo ? "1 1 50%" : "1 1 100%",
+          maxWidth: viewClientInfo ? 600 : "100%",
+          width: "100%",
+        }}
+      >
+        <Card sx={{ height: "100%" }}>
           <CardHeader
             title={
               <Stack direction="row" alignItems="center" spacing={1}>
@@ -166,15 +187,17 @@ export function ProfileInfo({ client, setClient, membership, isAdminView }: Prop
           <CardContent>
             <Stack spacing={3}>
               {/* Бонусы */}
+              {viewClientInfo &&
               <Box>
                 <Typography variant="caption" color="text.secondary">
                   Количество бонусов
                 </Typography>
 
                 <Typography fontWeight={600} sx={{ mt: 0.5 }}>
-                  {client.bonuses}
+                  {clientBonuses}
                 </Typography>
               </Box>
+}
               {/* Имя */}
               <Box>
                 <Typography variant="caption" color="text.secondary">
@@ -322,29 +345,6 @@ export function ProfileInfo({ client, setClient, membership, isAdminView }: Prop
                   </Button>
                 </Box>
               </Box>
-
-              {/* Email */}
-              {/* <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Email
-                </Typography>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    p: 2,
-                    borderRadius: 2,
-                    bgcolor: "action.hover"
-                  }}
-                >
-                  <EmailIcon color="action" />
-                  <Typography fontWeight={600}>
-                    {client.email}
-                  </Typography>
-                </Box>
-              </Box> */}
               {error && <Typography color="error" marginTop={1}>{error}</Typography>}
               {!isAdminView && <Button
                   variant="outlined"
@@ -376,36 +376,48 @@ export function ProfileInfo({ client, setClient, membership, isAdminView }: Prop
           id="passwordResetForm"
         >
           <DialogTitle>Изменение пароля</DialogTitle>
+          <Divider/>
 
           <DialogContent>
-            <Stack spacing={2} mt={1}>
+            <Stack spacing={3}>
+              {/* Требования с индикаторами */}
               <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Пароль должен соответствовать следующим требованиям:
+                <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                  Требования к новому паролю:
                 </Typography>
 
-                <Typography variant="body2">
-                  • Длина пароля должна быть не менее 6 символов
-                </Typography>
-                <Typography variant="body2">
-                  • Пароль должен содержать только символы латинского алфавита
-                </Typography>
-                <Typography variant="body2">
-                  • Пароль не должен содержать пробелов
-                </Typography>
-                <Typography variant="body2">
-                  • Пароль должен содержать как минимум 1 заглавную букву
-                </Typography>
-                <Typography variant="body2">
-                  • Пароль должен содержать как минимум 1 строчную букву
-                </Typography>
-                <Typography variant="body2">
-                  • Пароль должен содержать как минимум 1 цифру
-                </Typography>
-                <Typography variant="body2">
-                  • Пароль должен содержать как минимум 1 спецсимвол
-                </Typography>
+                <List dense sx={{ bgcolor: "background.paper", borderRadius: 1 }}>
+                  {[
+                    { label: "Длина должна быть не менее 6 символов", check: passwordData.newPassword.length >= 6 },
+                    { label: "Допускаются только символы латинского алфавита", check: /^[A-Za-z0-9@$!%*?&]*$/.test(passwordData.newPassword) },
+                    { label: "Пробелы не допускаются", check: !passwordData.newPassword.includes(" ") },
+                    { label: "Должна иметься как минимум 1 заглавная буква", check: /[A-Z]/.test(passwordData.newPassword) },
+                    { label: "Должна иметься как минимум 1 строчная буква", check: /[a-z]/.test(passwordData.newPassword) },
+                    { label: "Должна иметься как минимум 1 цифра", check: /\d/.test(passwordData.newPassword) },
+                    { label: "Должен иметься как минимум 1 спецсимвол", check: /[@$!%*?&]/.test(passwordData.newPassword) },
+                  ].map((req, idx) => (
+                    <ListItem key={idx} disablePadding sx={{ py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 32 }}>
+                        {req.check ? (
+                          <CheckCircleIcon color="success" fontSize="small" />
+                        ) : (
+                          <RadioButtonUncheckedIcon color="disabled" fontSize="small" />
+                        )}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={req.label}
+                        primaryTypographyProps={{
+                          variant: "body2",
+                          color: req.check ? "text.primary" : "text.disabled",
+                          sx: req.check ? { fontWeight: 500 } : {},
+                        }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
               </Box>
+
+              {/* Поля ввода */}
               <TextField
                 label="Старый пароль"
                 type="password"
@@ -427,7 +439,12 @@ export function ProfileInfo({ client, setClient, membership, isAdminView }: Prop
                 fullWidth
                 required
               />
-              {dialogError && <Typography color="error" marginTop={1}>{dialogError}</Typography>}
+
+              {dialogError && (
+                <Alert severity="error" icon={<ErrorIcon />}>
+                  {dialogError}
+                </Alert>
+              )}
             </Stack>
           </DialogContent>
 
@@ -446,77 +463,85 @@ export function ProfileInfo({ client, setClient, membership, isAdminView }: Prop
             </Button>
           </DialogActions>
         </Dialog>
-      </GridLegacy>
+      </Box>
 
       {/* Абонемент */}
-      <GridLegacy item xs={12} lg={6}>
-        <Card>
-          <CardHeader
-            title={
-              <Stack direction="row" spacing={1} alignItems="center">
-                <CreditCardIcon color="primary" />
-                <Typography variant="h6" fontWeight={600}>
-                  Текущий абонемент
-                </Typography>
-              </Stack>
-            }
-          />
+      {viewClientInfo && (
+        <Box
+          sx={{
+            flex: "1 1 50%",
+            maxWidth: 600,
+            width: "100%",
+          }}
+        >
+          <Card>
+            <CardHeader
+              title={
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <CreditCardIcon color="primary" />
+                  <Typography variant="h6" fontWeight={600}>
+                    Текущий абонемент
+                  </Typography>
+                </Stack>
+              }
+            />
 
-          <CardContent>
-            {membership ? (
-              <Stack spacing={3}>
+            <CardContent>
+              {membership ? (
+                <Stack spacing={3}>
+                  <Box
+                    sx={{
+                      p: 3,
+                      borderRadius: 2,
+                      border: "1px solid",
+                      borderColor: "divider"
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Тариф
+                    </Typography>
+
+                    <Typography variant="h5" fontWeight={700} sx={{ mb: 2 }}>
+                      {membership.membershipType!.name}
+                    </Typography>
+
+                    <Typography color="text.secondary" sx={{ mb: 2 }}>
+                      {membership.membershipType!.description}
+                    </Typography>
+
+                    <Box sx={{ pt: 2, borderTop: "1px solid", borderColor: "divider" }}>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <CalendarTodayIcon fontSize="small" />
+                        <Typography variant="body2" color="text.secondary">
+                          Дата окончания
+                        </Typography>
+                      </Stack>
+
+                      <Typography fontWeight={700} sx = {{ mt: 1 }}>
+                        {new Date(membership.endDate!).toLocaleDateString()}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Stack>
+              ) : (
                 <Box
                   sx={{
                     p: 3,
                     borderRadius: 2,
-                    border: "1px solid",
-                    borderColor: "divider"
+                    border: "1px dashed",
+                    borderColor: "divider",
+                    textAlign: "center"
                   }}
                 >
-                  <Typography variant="body2" color="text.secondary">
-                    Тариф
+                  <Typography color="text.secondary">
+                      Нет активного абонемента
                   </Typography>
-
-                  <Typography variant="h5" fontWeight={700} sx={{ mb: 2 }}>
-                    {membership.membershipType!.name}
-                  </Typography>
-
-                  <Typography color="text.secondary" sx={{ mb: 2 }}>
-                    {membership.membershipType!.description}
-                  </Typography>
-
-                  <Box sx={{ pt: 2, borderTop: "1px solid", borderColor: "divider" }}>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <CalendarTodayIcon fontSize="small" />
-                      <Typography variant="body2" color="text.secondary">
-                        Дата окончания
-                      </Typography>
-                    </Stack>
-
-                    <Typography fontWeight={700} sx = {{ mt: 1 }}>
-                      {new Date(membership.endDate!).toLocaleDateString()}
-                    </Typography>
-                  </Box>
                 </Box>
-              </Stack>
-            ) : (
-              <Box
-                sx={{
-                  p: 3,
-                  borderRadius: 2,
-                  border: "1px dashed",
-                  borderColor: "divider",
-                  textAlign: "center"
-                }}
-              >
-                <Typography color="text.secondary">
-                    Нет активного абонемента
-                </Typography>
-              </Box>
-            )}
-          </CardContent>
-        </Card>
-      </GridLegacy>
-    </GridLegacy>
+              )}
+            </CardContent>
+          </Card>
+        </Box>
+      )}
+    </Stack>
   );
 }

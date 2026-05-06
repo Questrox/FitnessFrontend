@@ -13,7 +13,7 @@ import {
 import PersonIcon from "@mui/icons-material/Person";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
-import { ClientDTO, MembershipDTO, MembershipTypeDTO, TrainingReservationDTO } from "../../api/g";
+import { ClientDTO, MembershipDTO, MembershipTypeDTO, TrainingReservationDTO, UserDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
 import { useParams, useSearchParams } from "react-router-dom";
 import { ProfileInfo } from "../ProfileTabs/ProfileInfo";
@@ -21,9 +21,11 @@ import { MembershipHistory } from "../ProfileTabs/MembershipHistory";
 import { ReservationHistory } from "../ProfileTabs/ReservationHistory";
 import { CreateMembershipDialog } from "../ProfileTabs/CreateMembershipDialog";
 import { CredentialsPrint } from "../AdminTabs/CredentialsPrint";
+import { useAuth } from "../../context/AuthContext";
 
 const ProfilePage = () => {
   const { id } = useParams();
+  const { userRole } = useAuth();
 
   // управление вкладками
   const [searchParams, setSearchParams] = useSearchParams();
@@ -31,6 +33,7 @@ const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState(initialTab);
   
   const [client, setClient] = useState<ClientDTO | undefined>();
+  const [user, setUser] = useState<UserDTO | undefined>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [hideCancelledClasses, setHideCancelledClasses] = useState(false);
   const [hidePaidClasses, setHidePaidClasses] = useState(false);
@@ -57,16 +60,25 @@ const ProfilePage = () => {
   }, [])
       
   const fetchData = async () => {
-    await fetchClient();
-
-    if (id)
+    if (id || userRole === "User")
     {
+      await fetchClient();
       try {
         const types = await apiClient.getMembershipTypes();
         setMembershipTypes(types || []);
       } catch (error) {
         console.error("Ошибка при загрузке типов абонементов", error);
       }
+    }
+    else
+    {
+      try {
+        const data = await apiClient.getCurrentUser();
+        setUser(data);
+      } catch (error: any) {
+        console.error("Ошибка при загрузке текущего пользователя: ", error);
+      }
+      setIsLoading(false);
     }
   }
 
@@ -82,6 +94,7 @@ const ProfilePage = () => {
         data = await apiClient.getCurrentClient();
       }
       setClient(data);
+      setUser(data.user);
       const currMembership = data!.memberships!.find((m) => m.startDate! <= currDate && m.endDate! >= currDate);
       setCurrentMembership(currMembership);
       if (currMembership) {
@@ -148,8 +161,8 @@ const ProfilePage = () => {
   if (isLoading)
     return <CircularProgress/>;
 
-  if (!client)
-    return <Typography>Не удалось получить клиента</Typography>
+  if (!user)
+    return <Typography>Не удалось получить пользователя</Typography>
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: 6 }}>
@@ -169,27 +182,15 @@ const ProfilePage = () => {
               {/* Info */}
               <Box sx={{ flexGrow: 1 }}>
                 <Typography variant="h4" fontWeight={700}>
-                  {client.user!.fullName}
+                  {user!.fullName}
                 </Typography>
 
                 <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap", mt: 1 }}>
                   <Typography color="text.secondary">
-                    @{client.user!.userName}
+                    @{user!.userName}
                   </Typography>
                 </Box>
               </Box>
-
-              {/* Expiration */}
-              {currentMembership && 
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    Текущий абонемент истекает через
-                  </Typography>
-                  <Typography variant="h5" fontWeight={700} color="primary">
-                    {daysUntilExpiration} дн.
-                  </Typography>
-                </Box>
-              }
             </Box>
           </CardContent>
         </Card>
@@ -228,6 +229,7 @@ const ProfilePage = () => {
         />
 
         {/* Tabs */}
+        {(userRole === "User" || id) &&
         <Tabs
           value={activeTab}
           onChange={(_, v) => setActiveTab(v)}
@@ -237,14 +239,19 @@ const ProfilePage = () => {
           <Tab value="memberships" icon={<CreditCardIcon />} iconPosition="start" label="Абонементы" />
           <Tab value="classes" icon={<FitnessCenterIcon />} iconPosition="start" label="Записи" />
         </Tabs>
+        }
 
         {/* Content */}
-        {activeTab === "profile" && <ProfileInfo client={client} setClient={setClient} membership={currentMembership} isAdminView={id !== null && id !== undefined} />}
-        {activeTab === "memberships" && <MembershipHistory memberships={client.memberships!} />}
+        {activeTab === "profile" && <ProfileInfo  currUser={user} 
+                                                  setUser={setUser} 
+                                                  clientBonuses={client?.bonuses} 
+                                                  membership={currentMembership} 
+                                                  isAdminView={id !== null && id !== undefined} />}
+        {activeTab === "memberships" && <MembershipHistory memberships={client?.memberships!} />}
         {activeTab === "classes" && <ReservationHistory client={client}
                                                         fetchClient={fetchClient}
                                                         isAdminView={id !== null && id !== undefined}
-                                                        reservationsList={client.trainingReservations!}
+                                                        reservationsList={client?.trainingReservations!}
                                                         onReservationUpdate={handleReservationUpdate} 
                                                         hideCancelled={hideCancelledClasses} 
                                                         setHideCancelled={setHideCancelledClasses}

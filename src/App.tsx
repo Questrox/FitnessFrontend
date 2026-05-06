@@ -73,7 +73,7 @@ const App: React.FC = () => {
             <Route path="/schedule" element={<SchedulePage/>}/>
             <Route path="/team" element={<TeamPage/>}/>
             <Route path="/profile" element={
-              <ProtectedRoute allowedRoles={[UserRole.User]}>
+              <ProtectedRoute>
                 <ProfilePage/>
               </ProtectedRoute>
             }/>
