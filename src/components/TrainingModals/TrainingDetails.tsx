@@ -275,6 +275,17 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
             >
                 {training?.trainingStatusId === 3 ? "Тренировка отменена" : "Нет свободных мест"}
             </Box>
+            ) : training.trainingStatusId === 2 ? (
+                <Box
+                  sx={{
+                  bgcolor: alpha(theme.palette.success.main, 0.1),
+                  color: "success.main",
+                  p: 2,
+                  borderRadius: 2,
+                  textAlign: "center",
+                  fontWeight: 600,
+                  }}
+                >Тренировка уже проведена</Box>
             ) : (
             <Box
                 sx={{
@@ -315,7 +326,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
             </Typography>
           )}
 
-          {userRole === "Admin" && training?.trainingStatusId !== 3 && (
+          {userRole === "Admin" && training?.trainingStatusId === 1 && (
               <Button
                 fullWidth
                 variant="outlined"

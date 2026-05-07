@@ -87,7 +87,6 @@ export function SchedulePage() {
           console.error("Ошибка при загрузке типов тренировок: " + error);
         }
       }
-      setIsLoading(false);
     })();
   }, [userRole])
   

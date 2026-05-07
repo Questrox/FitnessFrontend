@@ -8,7 +8,8 @@ import {
   Tabs,
   Tab,
   CircularProgress,
-  Button
+  Button,
+  Stack
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
@@ -165,37 +166,45 @@ const ProfilePage = () => {
     return <Typography>Не удалось получить пользователя</Typography>
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: 6 }}>
-      <Container maxWidth="lg">
+  <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: 6 }}>
+    <Container maxWidth="lg">
+      <Card
+        variant="outlined"
+        sx={(theme) => ({
+          borderRadius: 3,
+          borderWidth: 2,
+          transition: theme.transitions.create("border-color", {
+            duration: theme.transitions.duration.shortest,
+          })
+        })}
+      >
+        <Box
+          sx={(theme) => ({
+            py: 4,
+            textAlign: "center",
+            position: "relative",
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              bottom: 0,
+              left: "20%",
+              right: "20%",
+              height: 3,
+              bgcolor: theme.palette.primary.main,
+              borderRadius: 3,
+            },
+          })}
+        >
+          <Typography variant="h4" fontWeight={700}>
+            Личный кабинет
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Просмотр и управление аккаунтом
+          </Typography>
+        </Box>
 
-        {/* Header */}
-        <Card sx={{ mb: 4, overflow: "hidden" }}>
-          <Box
-            sx={{
-              height: 120,
-              bgcolor: "primary.main"
-            }}
-          />
-
-          <CardContent sx={{ mt: -8 }}>
-            <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap", alignItems: "flex-end" }}>
-              {/* Info */}
-              <Box sx={{ flexGrow: 1 }}>
-                <Typography variant="h4" fontWeight={700}>
-                  {user!.fullName}
-                </Typography>
-
-                <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap", mt: 1 }}>
-                  <Typography color="text.secondary">
-                    @{user!.userName}
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
-
-        {/* Actions */}
+        <Box sx={{ p: 4 }}>
+          {/* Actions */}
         {id && <Box
           sx={{
             display: "flex",
@@ -257,9 +266,11 @@ const ProfilePage = () => {
                                                         setHideCancelled={setHideCancelledClasses}
                                                         hidePaid={hidePaidClasses}
                                                         setHidePaid={setHidePaidClasses} />}
-      </Container>
-    </Box>
-  );
+        </Box>
+      </Card>
+    </Container>
+  </Box>
+);
 }
 
 export default ProfilePage;
