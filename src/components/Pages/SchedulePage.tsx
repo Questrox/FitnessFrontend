@@ -247,16 +247,19 @@ export function SchedulePage() {
             </Button>
           ))}
         </Stack>
-        {userRole === "Coach" && 
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={showPersonal}
-              onChange={(e) => setShowPersonal(e.target.checked)}
+        {userRole === "Coach" && (
+          <Stack sx={{ mb: 2 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={showPersonal}
+                  onChange={(e) => setShowPersonal(e.target.checked)}
+                />
+              }
+              label="Показывать только мои тренировки"
             />
-          }
-          label="Показывать только мои тренировки"
-        />}
+          </Stack>
+        )}
 
         {/* Schedule */}
         {isLoading ? (

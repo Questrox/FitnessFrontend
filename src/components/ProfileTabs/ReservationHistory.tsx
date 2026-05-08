@@ -10,6 +10,7 @@ import {
   Chip,
   Button,
   Dialog,
+  Pagination,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
@@ -21,7 +22,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import PaymentIcon from '@mui/icons-material/Payment';
 import { ClientDTO, CreatePaymentDTO, TrainingReservationDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PaymentForm } from "./PaymentDialog";
 
 interface ReservationHistoryProps {
@@ -51,6 +52,14 @@ export function ReservationHistory({
   const [selectedReservation, setSelectedReservation] = useState<TrainingReservationDTO | null>(null);
   const [bonuses, setBonuses] = useState<number>(0); // бонусы для оплаты
   const [paymentError, setPaymentError] = useState("");
+  const [page, setPage] = useState<number>(1);
+  const pageSize = 8;
+  const listRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setPage(1);
+  }, [hideCancelled, hidePaid, reservationsList]);
+
   if (!client)
     return null;
 
@@ -82,11 +91,20 @@ export function ReservationHistory({
 
   type LabelKey = keyof typeof statusLabels;
 
-  const reservations = reservationsList.filter((tr) => {
-    if (hideCancelled && tr.reservationStatus!.name === "Отменена") return false;
-    if (hidePaid && tr.reservationStatus!.name === "Оплачена") return false;
+  const filteredReservations = reservationsList.filter((tr) => {
+    if (hideCancelled && tr.reservationStatus!.name === "Отменена")
+      return false;
+
+    if (hidePaid && tr.reservationStatus!.name === "Оплачена")
+      return false;
+
     return true;
   });
+
+  const paginatedReservations = filteredReservations.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
 
   const handleCancel = async (id: number) => {
     if (window.confirm(`Вы действительно хотите отменить эту запись?`)) {
@@ -132,7 +150,7 @@ export function ReservationHistory({
   return (
     <Box>
       {/* Filters */}
-      <Card sx={{ mb: 3 }}>
+      <Card sx={{ mb: 3 }} ref={listRef}>
         <CardContent>
           <Stack direction="row" alignItems="center" spacing={1} mb={2}>
             <FilterListIcon color="action" />
@@ -164,7 +182,7 @@ export function ReservationHistory({
 
       {/* List */}
       <GridLegacy container spacing={3}>
-        {reservations.length === 0 ? (
+        {paginatedReservations.length === 0 ? (
           <GridLegacy item xs={12}>
             <Card>
               <CardContent sx={{ textAlign: "center", py: 6 }}>
@@ -178,7 +196,7 @@ export function ReservationHistory({
             </Card>
           </GridLegacy>
         ) : (
-          reservations.map((reservation) => {
+          paginatedReservations.map((reservation) => {
             const statusKey = statusLabels[reservation.reservationStatus!.name as LabelKey];
             const config = statusConfig[statusKey];
             const training = reservation.training!;
@@ -313,6 +331,21 @@ export function ReservationHistory({
           })
         )}
       </GridLegacy>
+      <Box display="flex" justifyContent="center" mt={4}>
+        <Pagination
+          count={Math.ceil(filteredReservations.length / pageSize)}
+          page={page}
+          onChange={(e, value) => {
+          setPage(value);
+
+          listRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+          });
+        }}
+        color="primary"
+          />
+      </Box>
       {selectedReservation && (
       <Dialog open={paymentOpen} onClose={handleClosePaymentDialog} maxWidth="md" fullWidth>
         <PaymentForm

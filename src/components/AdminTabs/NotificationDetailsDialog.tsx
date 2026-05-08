@@ -45,8 +45,8 @@ export function NotificationDetailsDialog({
       minute: "2-digit",
     });
 
-  const unnotified = notifications!.filter((n) => n.adminId === null);
-  const notified = notifications!.filter((n) => n.adminId !== null);
+  const unnotified = notifications!.filter((n) => !n.isNotified);
+  const notified = notifications!.filter((n) => n.isNotified);
 
   return (
     <Dialog open={isOpen} onClose={onClose} maxWidth="sm" fullWidth>

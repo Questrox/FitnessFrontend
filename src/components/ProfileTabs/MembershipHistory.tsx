@@ -8,6 +8,7 @@ import {
   Stack,
   Chip,
   GridLegacy,
+  Pagination,
 } from "@mui/material";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import HistoryIcon from "@mui/icons-material/History";
@@ -15,6 +16,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { MembershipDTO } from "../../api/g";
+import { useRef, useState } from "react";
 
 interface MembershipHistoryProps {
   memberships: MembershipDTO[];
@@ -23,10 +25,17 @@ interface MembershipHistoryProps {
 export function MembershipHistory({
   memberships,
 }: MembershipHistoryProps) {
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const [page, setPage] = useState<number>(1);
+  const pageSize = 5;
+  const paginatedMemberships = memberships.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
   return (
     <Box>
       {/* List */}
-      <Stack spacing={2}>
+      <Stack spacing={2} ref={listRef}>
         {memberships.length === 0 ? (
           <Card>
             <CardContent sx={{ textAlign: "center", py: 6 }}>
@@ -37,10 +46,11 @@ export function MembershipHistory({
             </CardContent>
           </Card>
         ) : (
-          memberships.map((membership) => {
+          paginatedMemberships.map((membership) => {
             const currDate = new Date();
             const isActive = new Date(membership.startDate!).getTime() <= currDate.getTime() && new Date(membership.endDate!).getTime() >= currDate.getTime();
-            const chipLabel = isActive ? "Активный" : "Истекший";
+            const isFuture = new Date(membership.startDate!).getTime() >= currDate.getTime()
+            const chipLabel = isActive ? "Активный" : isFuture ? "Предстоящий" : "Истекший";
 
             return (
               <Card
@@ -117,6 +127,21 @@ export function MembershipHistory({
           })
         )}
       </Stack>
+      <Box display="flex" justifyContent="center" mt={4}>
+        <Pagination
+          count={Math.ceil(memberships.length / pageSize)}
+          page={page}
+          onChange={(e, value) => {
+          setPage(value);
+
+          listRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+          });
+        }}
+        color="primary"
+          />
+      </Box>
     </Box>
   );
 }
