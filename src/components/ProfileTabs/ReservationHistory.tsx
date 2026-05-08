@@ -24,6 +24,7 @@ import { ClientDTO, CreatePaymentDTO, TrainingReservationDTO } from "../../api/g
 import { apiClient } from "../../api/apiClient";
 import { useEffect, useRef, useState } from "react";
 import { PaymentForm } from "./PaymentDialog";
+import { useConfirm } from "material-ui-confirm";
 
 interface ReservationHistoryProps {
   client: ClientDTO | undefined;
@@ -48,6 +49,7 @@ export function ReservationHistory({
   hidePaid,
   setHidePaid,
 }: ReservationHistoryProps) {
+  const confirm = useConfirm();
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<TrainingReservationDTO | null>(null);
   const [bonuses, setBonuses] = useState<number>(0); // бонусы для оплаты
@@ -107,7 +109,8 @@ export function ReservationHistory({
   );
 
   const handleCancel = async (id: number) => {
-    if (window.confirm(`Вы действительно хотите отменить эту запись?`)) {
+    const {confirmed} = await confirm({description: `Вы действительно хотите отменить эту запись?`})
+    if (confirmed) {
       try {
         const result = await apiClient.cancelReservation(id);
         onReservationUpdate(id, result);

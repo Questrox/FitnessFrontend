@@ -7,8 +7,10 @@ import { CreateCoachDialog } from "./CreateCoachDialog";
 import { EditCoachDialog } from "./EditCoachDialog";
 import { apiClient } from "../../api/apiClient";
 import { CredentialsPrint } from "./CredentialsPrint";
+import { useConfirm } from "material-ui-confirm";
 
 export function CoachManagement() {
+  const confirm = useConfirm();
   const [coaches, setCoaches] = useState<CoachDTO[]>([]);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -40,7 +42,8 @@ export function CoachManagement() {
   };
 
   const handleDeleteCoach = async (coachId: number, coachName: string) => {
-    if (window.confirm(`Вы уверены, что хотите удалить тренера "${coachName}"?`)) {
+    const {confirmed} = await confirm({description: `Вы действительно хотите удалить тренера "${coachName}"?`});
+    if (confirmed) {
       try {
         await apiClient.softDeleteCoach(coachId);
         const updatedCoaches = coaches.filter(coach => coach.id !== coachId);

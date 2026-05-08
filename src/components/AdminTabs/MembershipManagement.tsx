@@ -23,8 +23,10 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { CreateMembershipTypeDTO, MembershipTypeDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
+import { useConfirm } from "material-ui-confirm";
 
 export function MembershipManagement() {
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [editingMembership, setEditingMembership] = useState<MembershipTypeDTO | null>(null);
   const [membershipTypes, setMembershipTypes] = useState<MembershipTypeDTO[]>([]);
@@ -129,7 +131,8 @@ export function MembershipManagement() {
   };
 
   const handleDelete = async (membership: MembershipTypeDTO) => {
-    if (window.confirm(`Вы действительно хотите удалить "${membership.name}"?`)) {
+    const {confirmed} = await confirm({description: `Вы действительно хотите удалить абонемент "${membership.name}"?`})
+    if (confirmed) {
       setIsLoading(true);
       await apiClient.softDeleteMembershipType(membership.id!);
       await fetchTypes();

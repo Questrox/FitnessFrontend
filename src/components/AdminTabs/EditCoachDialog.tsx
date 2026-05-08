@@ -25,6 +25,7 @@ import { CoachDTO, CoachScheduleDTO, CreateCoachScheduleDTO } from "../../api/g"
 import { apiClient } from "../../api/apiClient";
 import { Dayjs } from "dayjs";
 import { TimePicker } from "@mui/x-date-pickers";
+import { useConfirm } from "material-ui-confirm";
 
 const daysOfWeek = [
   { value: 1, label: "Понедельник" },
@@ -48,6 +49,7 @@ interface EditCoachDialogProps {
 
 export function EditCoachDialog({ isOpen, onClose, coach, setCoach, coaches, setCoaches, setCredentials }: EditCoachDialogProps) {
   const theme = useTheme();
+  const confirm = useConfirm();
 
   const [tab, setTab] = useState(0);
   const [error, setError] = useState("");
@@ -78,7 +80,8 @@ export function EditCoachDialog({ isOpen, onClose, coach, setCoach, coaches, set
   };
 
   const handleGenerateCredentials = async () => {
-    if (window.confirm("Вы уверены, что хотите сгенерировать новые данные для входа? Несохраненные изменения будут утеряны!"))
+    const {confirmed} = await confirm({description: "Вы действительно хотите сгенерировать новые данные для входа? Несохраненные изменения будут утеряны!"})
+    if (confirmed)
     {
       try {
         const credentials = await apiClient.generateNewCredentials(coach?.userId);
@@ -123,7 +126,8 @@ export function EditCoachDialog({ isOpen, onClose, coach, setCoach, coaches, set
   };
 
   const handleDeleteSchedule = async (id: number) => {
-    if (window.confirm("Вы уверены, что хотите удалить данный слот расписания?"))
+    const {confirmed} = await confirm({description: "Вы действительно хотите удалить данный слот расписания?"})
+    if (confirmed)
     {
       try {
         await apiClient.softDeleteCoachSchedule(id);

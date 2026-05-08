@@ -23,10 +23,12 @@ import { ReservationHistory } from "../ProfileTabs/ReservationHistory";
 import { CreateMembershipDialog } from "../ProfileTabs/CreateMembershipDialog";
 import { CredentialsPrint } from "../AdminTabs/CredentialsPrint";
 import { useAuth } from "../../context/AuthContext";
+import { useConfirm } from "material-ui-confirm";
 
 const ProfilePage = () => {
   const { id } = useParams();
   const { userRole } = useAuth();
+  const confirm = useConfirm();
 
   // управление вкладками
   const [searchParams, setSearchParams] = useSearchParams();
@@ -123,7 +125,8 @@ const ProfilePage = () => {
   };
 
   const handleGenerateCredentials = async () => {
-    if (window.confirm("Вы точно хотите сгенерировать новые данные для входа этого пользователя? Старые данные будут утеряны!"))
+    const {confirmed} = await confirm({description: "Вы точно хотите сгенерировать новые данные для входа этого пользователя? Старые данные будут утеряны!"})
+    if (confirmed)
     {
       try {
         const data = await apiClient.generateNewCredentials(client!.userId);

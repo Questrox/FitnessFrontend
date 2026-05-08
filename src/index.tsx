@@ -5,6 +5,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { ThemeProvider, createTheme } from "@mui/material/styles" // Импорт провайдера темы и функции создания темы для Material UI.
 import { BrowserRouter } from "react-router-dom" // Импорт маршрутизатора для управления навигацией.
+import { ConfirmProvider } from 'material-ui-confirm';
 import { ruRU } from "@mui/material/locale"
 import "@fontsource/inter";
 import "./index.css" // Импорт глобальных стилей приложения.
@@ -84,7 +85,15 @@ root.render(
     {/* Обеспечиваем маршрутизацию для приложения. */}
     <ThemeProvider theme={theme}>
       {/* Обеспечиваем доступность темы для всех вложенных компонентов. */}
-      <App />
+      <ConfirmProvider 
+      defaultOptions={{
+        title: "Вы уверены?",
+        confirmationText: "ОК",
+        cancellationText: "Отмена"
+      }}
+      >
+        <App />
+      </ConfirmProvider>
     </ThemeProvider>
   </BrowserRouter>
 );

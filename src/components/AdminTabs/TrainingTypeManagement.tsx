@@ -22,9 +22,11 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import UploadIcon from "@mui/icons-material/Upload";
 import { TrainingTypeDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
+import { useConfirm } from "material-ui-confirm";
 
 
 export function TrainingTypeManagement() {
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [editingTrainingType, setEditingTrainingType] = useState<TrainingTypeDTO | null>(null);
   const [trainingTypes, setTrainingTypes] = useState<TrainingTypeDTO[]>([]);
@@ -169,7 +171,8 @@ export function TrainingTypeManagement() {
   };
 
   const handleDelete = async (trainingType: TrainingTypeDTO) => {
-    if (window.confirm(`Вы действительно хотите удалить "${trainingType.name}"?`)) {
+    const {confirmed} = await confirm({description: `Вы действительно хотите удалить тип тренировки "${trainingType.name}"?`})
+    if (confirmed) {
       setIsLoading(true);
       await apiClient.softDeleteTrainingType(trainingType.id!);
       await fetchTypes();

@@ -15,8 +15,10 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { NotificationDetailsDialog } from "./NotificationDetailsDialog";
 import { TrainingWithNotificationsDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
+import { useConfirm } from "material-ui-confirm";
 
 export function NotificationsManagement() {
+  const confirm = useConfirm();
   const [selectedTraining, setSelectedTraining] = useState<TrainingWithNotificationsDTO | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [notifications, setNotifications] = useState<TrainingWithNotificationsDTO[]>([]);
@@ -28,7 +30,8 @@ export function NotificationsManagement() {
   };
 
   const handleNotifyClient = async (notificationId: number) => {
-    if (window.confirm("Подтвердить уведомление клиента?"))
+    const { confirmed } = await confirm({description: "Подтвердить уведомление клиента?"});
+    if (confirmed)
     {
         try {
             const updatedNotification = await apiClient.confirmNotification(notificationId);

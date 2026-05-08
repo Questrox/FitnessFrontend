@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import { apiClient } from "../../api/apiClient";
 import { ClientSelectDialog } from "./ClientSelectDialog";
 import { TrainingAttendanceList } from "./TrainingAttendanceList";
+import { useConfirm } from "material-ui-confirm";
 
 interface TrainingModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ interface TrainingModalProps {
 
 export function TrainingDetails({ isOpen, onClose, training, setTraining, onCreateReservationSuccess, onCancelOrCompleteTraining }: TrainingModalProps) {
   const theme = useTheme();
+  const confirm = useConfirm();
   const [tab, setTab] = useState<"details" | "attendance">("details");
 
   const { userRole, user } = useAuth();
@@ -110,7 +112,8 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
   }
 
   const handleCancel = async () => {
-    if (window.confirm("Вы уверены, что хотите отменить эту тренировку?")) {
+    const {confirmed} = await confirm({description: "Вы действительно хотите отменить эту тренировку?"})
+    if (confirmed) {
       try {
         const result = await apiClient.cancelTraining(training!.id!);
         setTraining(result);
@@ -177,18 +180,23 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
   }
 
   const onConfirmAttendance = async (resId: number) => {
-    try {
-      const result = await apiClient.confirmTrainingAttendance(resId);
-      const updatedReservations = reservations!.map(res => res.id === resId ? result : res);
-      setReservations(updatedReservations);
-      console.log(result);
-    } catch (error: any) {
-      alert(error.message);
+    const {confirmed} = await confirm({description: "Вы действительно хотите отметить посещение этого клиента?"})
+    if (confirmed)
+    {
+      try {
+        const result = await apiClient.confirmTrainingAttendance(resId);
+        const updatedReservations = reservations!.map(res => res.id === resId ? result : res);
+        setReservations(updatedReservations);
+        console.log(result);
+      } catch (error: any) {
+        alert(error.message);
+      }
     }
   }
 
   const onMarkCompleted = async () => {
-    if (window.confirm("Вы уверены, что отметили всех клиентов?"))
+    const {confirmed} = await confirm({description: "Вы уверены, что отметили всех клиентов?"})
+    if (confirmed)
     {
       try {
         const result = await apiClient.completeTraining(training.id!);
