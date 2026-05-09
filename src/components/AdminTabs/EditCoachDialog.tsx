@@ -74,9 +74,22 @@ export function EditCoachDialog({ isOpen, onClose, coach, setCoach, coaches, set
   }, [coach]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setPhotoFile(e.target.files[0]);
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+    
+    const allowedTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      alert("Некорректный формат файла, допустимы только PNG, JPG и WebP");
+      return;
     }
+
+    setPhotoFile(file);
   };
 
   const handleGenerateCredentials = async () => {
@@ -271,7 +284,7 @@ export function EditCoachDialog({ isOpen, onClose, coach, setCoach, coaches, set
                     <input
                       hidden
                       type="file"
-                      accept="image/*"
+                      accept="image/png,image/jpeg,image/webp"
                       onChange={handlePhotoChange}
                     />
                   </Button>

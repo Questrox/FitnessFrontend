@@ -36,6 +36,7 @@ export function CreateTrainingDialog({
   const [coach, setCoach] = useState<CoachDTO | null>(null);
   const [startDateTime, setStartDateTime] = useState<Dayjs | null>(null);
   const [error, setError] = useState<string>("");
+  const [isFetching, setIsFetching] = useState(false);
 
   const endDateTime = startDateTime
     ? startDateTime.add(trainingType ? trainingType.duration! : 0, "minute")
@@ -47,6 +48,7 @@ export function CreateTrainingDialog({
 
       if (!startDateTime || !endDateTime || !trainingType) return;
 
+      setIsFetching(true);
       try {
         const coaches = await apiClient.getAvailableCoaches(
           startDateTime.toDate(),
@@ -56,6 +58,7 @@ export function CreateTrainingDialog({
       } catch (error) {
         console.error("Ошибка при загрузке тренеров:", error);
       }
+      setIsFetching(false);
     })();
   }, [startDateTime, trainingType]);
 
@@ -123,17 +126,36 @@ export function CreateTrainingDialog({
               const isSelecting = !startDateTime || !trainingType;
               const noCoaches = availableCoaches.length === 0;
 
-              let label = "Тренер";
+              let label = "Выберите тренера";
               let error = false;
 
               if (isSelecting) {
                 label = "Выберите дату и тип тренировки";
+              } else if (isFetching) {
+                label = "Загрузка...";
               } else if (noCoaches) {
                 label = "Нет свободных тренеров";
                 error = true;
               }
 
-              return <TextField {...params} label={label} error={error} />;
+              return (
+                <TextField
+                  {...params}
+                  label={label}
+                  error={error}
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {isFetching && (
+                          <CircularProgress color="inherit" size={20} />
+                        )}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
+                />
+              );
             }}
           />
 

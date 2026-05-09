@@ -313,7 +313,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
             <Typography
               variant="body2"
               color={
-                message === "Вы уже записаны" || message === "Клиент уже записан"
+                message.includes("Вы уже записаны") || message.includes("Клиент уже записан")
                   ? "success" 
                   : "error"
               }

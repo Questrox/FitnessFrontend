@@ -1,9 +1,10 @@
 import { Box, Container, Typography, GridLegacy } from "@mui/material";
+import { Link } from "react-router-dom";
 
 const Root = () => {
   return (
     <Box sx={{ display: "flex", flexDirection: "column" }}>
-      <Box component="footer" sx={{ bgcolor: "grey.900", color: "grey.100", py: 6, mt: 6 }}>
+      <Box component="footer" sx={{ bgcolor: "grey.900", color: "grey.100", py: 6 }}>
         <Container>
           <GridLegacy container spacing={4}>
             <GridLegacy item xs={12} md={4}>
@@ -19,12 +20,40 @@ const Root = () => {
               <Typography variant="h6" gutterBottom>
                 Навигация
               </Typography>
-              <Typography variant="body2" color="grey.400">
-                Абонементы
-              </Typography>
-              <Typography variant="body2" color="grey.400">
-                Расписание занятий
-              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                <Typography
+                  variant="body2"
+                  component={Link}
+                  to="/memberships"
+                  sx={{
+                    color: "grey.400",
+                    textDecoration: "none",
+                    "&:hover": {
+                      color: "white",
+                      textDecoration: "underline",
+                    },
+                  }}
+                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                >
+                  Абонементы
+                </Typography>
+                <Typography
+                  variant="body2"
+                  component={Link}
+                  to="/schedule"
+                  sx={{
+                    color: "grey.400",
+                    textDecoration: "none",
+                    "&:hover": {
+                      color: "white",
+                      textDecoration: "underline",
+                    },
+                  }}
+                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                >
+                  Расписание занятий
+                </Typography>
+              </Box>
             </GridLegacy>
 
             <GridLegacy item xs={12} md={4}>

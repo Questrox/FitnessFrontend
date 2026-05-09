@@ -23,26 +23,26 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   }
 
   return (
-    <>
-      {/* Корневой контейнер для всей структуры компонента. */}
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+      }}
+    >
       <CssBaseline />
-      {/* CssBaseline отвечает за сброс стандартных стилей браузера. */}
       <Header />
-      {/* Компонент для отображения шапки приложения. */}
       <Box
         component="main"
-        // Основная область страницы, где будет отображаться содержимое `children`.
         sx={{
-          flexGrow: 1, // Основной контейнер занимает оставшееся пространство.
-          minHeight: 563
+          flexGrow: 1, // Растягивается на всю доступную высоту
         }}
       >
         {children}
-        {/* Вложенные компоненты, которые рендерятся внутри Layout. */}
       </Box>
-      <Footer/>
-    </>
-  )
+      <Footer />
+    </Box>
+  );
 }
 
 export default Layout

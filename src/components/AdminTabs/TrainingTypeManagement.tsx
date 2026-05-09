@@ -181,16 +181,27 @@ export function TrainingTypeManagement() {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file)
-    {
-      setImage(file);
-      const previewUrl = URL.createObjectURL(file);
 
-      setFormData((prev) => ({
-        ...prev,
-        photoPath: previewUrl,
-      }));
+    if (!file) return;
+
+    const allowedTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      alert("Некорректный формат файла, допустимы только PNG, JPG и WebP");
+      return;
     }
+
+    setImage(file);
+    const previewUrl = URL.createObjectURL(file);
+
+    setFormData((prev) => ({
+      ...prev,
+      photoPath: previewUrl,
+    }));
   };
 
   if (isLoading)
@@ -326,6 +337,7 @@ export function TrainingTypeManagement() {
                     <input
                       hidden
                       type="file"
+                      accept="image/png,image/jpeg,image/webp"
                       onChange={handleImageUpload}
                     />
                   </Button>

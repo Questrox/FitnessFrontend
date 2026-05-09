@@ -26,9 +26,22 @@ export function CreateCoachDialog({ isOpen, onClose, onSuccess, setCredentials }
   const [error, setError] = useState("");
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      setPhotoFile(e.target.files[0]);
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+    
+    const allowedTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      alert("Некорректный формат файла, допустимы только PNG, JPG и WebP");
+      return;
     }
+
+    setPhotoFile(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -121,7 +134,7 @@ export function CreateCoachDialog({ isOpen, onClose, onSuccess, setCredentials }
                 <input
                   hidden
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/webp"
                   onChange={handlePhotoChange}
                 />
               </Button>
