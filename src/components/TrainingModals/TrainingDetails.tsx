@@ -13,24 +13,25 @@ import {
   Tabs,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
-import { ClientDTO, CreateTrainingReservationDTO, ReservationForTrainingDTO, TrainingDTO } from "../../api/g";
+import { ClientDTO, CoachDTO, CreateTrainingReservationDTO, ReservationForTrainingDTO, TrainingDTO } from "../../api/g";
 import { useAuth } from "../../context/AuthContext";
 import { useEffect, useState } from "react";
 import { apiClient } from "../../api/apiClient";
 import { ClientSelectDialog } from "./ClientSelectDialog";
 import { TrainingAttendanceList } from "./TrainingAttendanceList";
 import { useConfirm } from "material-ui-confirm";
+import { CoachSelectDialog } from "./CoachSelectDialog";
 
 interface TrainingModalProps {
   isOpen: boolean;
   onClose: () => void;
   training: TrainingDTO | null;
   setTraining: React.Dispatch<React.SetStateAction<TrainingDTO | null>>;
-  onCreateReservationSuccess: () => Promise<void>
+  refreshTrainingList: () => Promise<void>
   onCancelOrCompleteTraining: (startDate: Date) => Promise<void>;
 }
 
-export function TrainingDetails({ isOpen, onClose, training, setTraining, onCreateReservationSuccess, onCancelOrCompleteTraining }: TrainingModalProps) {
+export function TrainingDetails({ isOpen, onClose, training, setTraining, refreshTrainingList, onCancelOrCompleteTraining }: TrainingModalProps) {
   const theme = useTheme();
   const confirm = useConfirm();
   const [tab, setTab] = useState<"details" | "attendance">("details");
@@ -39,7 +40,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
   const [message, setMessage] = useState("");
   const [cancelError, setCancelError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [view, setView] = useState<"details" | "selectClient">("details");
+  const [view, setView] = useState<"details" | "selectClient" | "selectCoach">("details");
   const [selectedClient, setSelectedClient] = useState<ClientDTO | null>(null);
   
   const [reservations, setReservations] = useState<ReservationForTrainingDTO[] | null>(null);
@@ -111,6 +112,17 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
     }
   }
 
+  const handleCoachSelect = async (coach: CoachDTO) => {
+    try {
+      const data = await apiClient.updateTrainingCoach(training?.id, coach.id);
+      setTraining(data);
+      setView("details");
+      await refreshTrainingList();
+    } catch (error: any) {
+      alert(error.message);
+    }
+  }
+
   const handleCancel = async () => {
     const {confirmed} = await confirm({description: "Вы действительно хотите отменить эту тренировку?"})
     if (confirmed) {
@@ -126,6 +138,21 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
       }
     }
   }
+  const getPlacesText = (count: number): string => {
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+      return `${count} мест`;
+    }
+    if (lastDigit === 1) {
+      return `${count} место`;
+    }
+    if (lastDigit >= 2 && lastDigit <= 4) {
+      return `${count} места`;
+    }
+    return `${count} мест`;
+  };
 
   if (!training) return null;
 
@@ -167,7 +194,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
       console.log(training);
       training.reservationsCount = (training.reservationsCount ?? 0) + 1;
       await checkReservationCreation();
-      await onCreateReservationSuccess();
+      await refreshTrainingList();
       if (reservations)
       {
         await fetchReservations();
@@ -305,7 +332,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
                 fontWeight: 600,
                 }}
             >
-                Осталось {spotsLeft} {spotsLeft === 1 ? "место" : "мест"}
+                Осталось {getPlacesText(spotsLeft)}
             </Box>
           )}
 
@@ -344,6 +371,16 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
                 {selectedClient
                   ? `Клиент: ${selectedClient.user?.fullName}`
                   : "Выбрать клиента"}
+              </Button>
+            )}
+
+            {userRole === "Admin" && training?.trainingStatusId === 1 && (
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => setView("selectCoach")}
+              >
+                Сменить тренера
               </Button>
             )}
 
@@ -397,6 +434,12 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, onCrea
         setSelectedClient(client);
         setView("details");
       }}
+    />
+    <CoachSelectDialog
+      open={isOpen && view === "selectCoach"}
+      training={training}
+      onClose={() => setView("details")}
+      onSelect={handleCoachSelect}
     />
     </>
   );

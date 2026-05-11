@@ -132,6 +132,7 @@ export function EditCoachDialog({ isOpen, onClose, coach, setCoach, coaches, set
 
       const updatedCoaches = coaches.map(c => c.id === coach!.id ? updatedCoach : c);
       setCoaches(updatedCoaches);
+      alert("Слот расписания добавлен!");
     } catch (error: any)
     {
       setScheduleError(error.message);

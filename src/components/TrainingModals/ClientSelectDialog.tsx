@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ClientDTO, ClientDTOPagedResult } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
-import { Box, Card, CardContent, CircularProgress, Dialog, DialogContent, DialogTitle, GridLegacy, TextField, Typography, Pagination } from "@mui/material";
+import { Box, Card, CardContent, CircularProgress, Dialog, DialogContent, DialogTitle, GridLegacy, TextField, Typography, Pagination, DialogActions, Button, Divider } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import { Phone } from "@mui/icons-material";
 
@@ -33,7 +33,13 @@ export function ClientSelectDialog({ open, onClose, onSelect }: Props) {
 
   return (
     <Dialog open={open} onClose={() => { onClose(); setSearchQuery(""); setPage(1); }} fullWidth maxWidth="md">
-      <DialogTitle>Выбор клиента</DialogTitle>
+      <DialogTitle sx={{
+          pb: 1,
+          fontWeight: 700,
+          fontSize: "1.5rem",
+        }}>
+          Выбор клиента
+      </DialogTitle>
 
       <DialogContent>
         <TextField
@@ -60,7 +66,15 @@ export function ClientSelectDialog({ open, onClose, onSelect }: Props) {
             ) : (
             clients?.items?.map((client) => (
                 <GridLegacy item xs={12} md={6} key={client.id}>
-                <Card sx={{ cursor: "pointer" }} onClick={() => onSelect(client)}>
+                <Card 
+                  sx={{ 
+                    cursor: "pointer", 
+                    "&:hover": {
+                      boxShadow: 3,
+                    }, 
+                  }} 
+                  onClick={() => onSelect(client)}
+                >
                     <CardContent>
                     <Typography fontWeight={600}>
                         {client.user?.fullName}
@@ -92,6 +106,16 @@ export function ClientSelectDialog({ open, onClose, onSelect }: Props) {
             />
         </Box>
       </DialogContent>
+      <Divider/>
+      <DialogActions sx={{ px: 3, py: 2 }}>
+        <Button
+          onClick={onClose}
+          variant="outlined"
+          size="medium"
+        >
+          Отмена
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }

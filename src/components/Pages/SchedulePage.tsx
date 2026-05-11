@@ -12,7 +12,9 @@ import {
   CircularProgress,
   Divider,
   Checkbox,
-  FormControlLabel
+  FormControlLabel,
+  useTheme,
+  Chip
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -26,6 +28,7 @@ import { CreateIndividualTrainingDialog } from "../TrainingModals/CreateIndividu
 import dayjs, { Dayjs } from "dayjs";
 
 export function SchedulePage() {
+  const theme = useTheme()
   const [selectedDay, setSelectedDay] = useState("");
   const [selectedWeek, setSelectedWeek] = useState(0);
   const [trainingTypes, setTrainingTypes] = useState<TrainingTypeDTO[]>([]);
@@ -35,6 +38,7 @@ export function SchedulePage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedTraining, setSelectedTraining] = useState<TrainingDTO | null>(null);
   const [showPersonal, setShowPersonal] = useState(false);
+  const [showCancelled, setShowCancelled] = useState(false);
 
   const { userRole, user } = useAuth();
 
@@ -112,6 +116,7 @@ export function SchedulePage() {
       setTrainings(weekTrainings);
       // console.log(monday)
       // console.log(sunday)
+      console.log(weekTrainings)
     }
     catch (error)
     {
@@ -155,6 +160,7 @@ export function SchedulePage() {
 
   const getTrainingsForDayAndTime = (day: string, time: string) => {
     return trainings.filter((training) => {
+      if (!showCancelled && training.trainingStatusId === 3) return false;
       const start = new Date(training.startDate!);
 
       const trainingDay = start.toLocaleDateString("ru-RU", { weekday: "long" });
@@ -167,6 +173,7 @@ export function SchedulePage() {
   };
 
   const hasTrainingsForDay = trainings.some((t) => {
+    if (!showCancelled && t.trainingStatusId === 3) return false;
     const start = new Date(t.startDate!);
     const dayName = start.toLocaleDateString("ru-RU", { weekday: "long" });
     return dayName.toLowerCase() === selectedDay.toLowerCase();
@@ -175,6 +182,22 @@ export function SchedulePage() {
   const handleTrainingClick = (training: TrainingDTO) => {
     setSelectedTraining(training);
     setModalOpen(true);
+  };
+
+  const getPlacesText = (count: number): string => {
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 14) {
+      return `${count} мест`;
+    }
+    if (lastDigit === 1) {
+      return `${count} место`;
+    }
+    if (lastDigit >= 2 && lastDigit <= 4) {
+      return `${count} места`;
+    }
+    return `${count} мест`;
   };
 
   return (
@@ -247,6 +270,19 @@ export function SchedulePage() {
             </Button>
           ))}
         </Stack>
+        {(userRole === "Admin" || userRole === "Coach") && (
+          <Stack>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={showCancelled}
+                  onChange={(e) => setShowCancelled(e.target.checked)}
+                />
+              }
+              label="Показывать отмененные тренировки"
+            />
+          </Stack>
+        )}
         {userRole === "Coach" && (
           <Stack sx={{ mb: 2 }}>
             <FormControlLabel
@@ -338,25 +374,34 @@ export function SchedulePage() {
 
                               <Divider />
 
-                              <Stack
-                                direction="row"
-                                justifyContent="space-between"
-                                sx={{ mt: 2 }}
-                              >
-                                <Typography variant="body2">
-                                  {isFull
-                                    ? "Нет мест"
-                                    : `${spotsLeft} ${
-                                        spotsLeft === 1 ? "место" : "мест"
-                                      }`}
-                                </Typography>
-
-                                <Typography fontWeight={600}>
-                                  {type.price! > 0
-                                    ? `${type.price} ₽`
-                                    : "Бесплатная"}
-                                </Typography>
-                              </Stack>
+                              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 2 }}>
+                              {training.trainingStatusId === 2 && (
+                                <Chip 
+                                  label="Тренировка завершена" 
+                                  color="success" 
+                                  variant="outlined"
+                                  sx={{ width: "100%", fontWeight: 700 }}
+                                />
+                              )}
+                              {training.trainingStatusId === 3 && (
+                                <Chip
+                                  label="Тренировка отменена" 
+                                  color="error" 
+                                  variant="outlined"
+                                  sx={{ width: "100%", fontWeight: 700 }}
+                                />
+                              )}
+                              {training.trainingStatusId !== 2 && training.trainingStatusId !== 3 && (
+                                <>
+                                  <Typography variant="body2">
+                                    {isFull ? "Нет мест" : getPlacesText(spotsLeft)}
+                                  </Typography>
+                                  <Typography fontWeight={600}>
+                                    {type.price! > 0 ? `${type.price} ₽` : "Бесплатная"}
+                                  </Typography>
+                                </>
+                              )}
+                            </Stack>
                             </CardContent>
                           </Card>
                         </GridLegacy>
@@ -391,7 +436,7 @@ export function SchedulePage() {
         onClose={() => setModalOpen(false)}
         training={selectedTraining}
         setTraining={setSelectedTraining}
-        onCreateReservationSuccess={fetchWeekTrainings}
+        refreshTrainingList={fetchWeekTrainings}
         onCancelOrCompleteTraining={onSuccess}
       />
     </Box>
