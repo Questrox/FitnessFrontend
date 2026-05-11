@@ -24,10 +24,13 @@ import UploadIcon from "@mui/icons-material/Upload";
 import { TrainingTypeDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
 import { useConfirm } from "material-ui-confirm";
+import { useSnackbar } from "../../context/SnackbarContext";
 
 
 export function TrainingTypeManagement() {
   const confirm = useConfirm();
+  const {showSnackbar} = useSnackbar();
+
   const [open, setOpen] = useState(false);
   const [editingTrainingType, setEditingTrainingType] = useState<TrainingTypeDTO | null>(null);
   const [trainingTypes, setTrainingTypes] = useState<TrainingTypeDTO[]>([]);
@@ -112,7 +115,7 @@ export function TrainingTypeManagement() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.photoPath) {
-      alert("Пожалуйста, загрузите изображение");
+      setError("Пожалуйста, загрузите изображение");
       return;
     }
     const data = {
@@ -192,7 +195,7 @@ export function TrainingTypeManagement() {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      alert("Некорректный формат файла, допустимы только PNG, JPG и WebP");
+      showSnackbar("Некорректный формат файла, допустимы только PNG, JPG и WebP", "error");
       return;
     }
 
@@ -206,7 +209,9 @@ export function TrainingTypeManagement() {
   };
 
   if (isLoading)
-    return <CircularProgress/>
+    return <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 150 }}>
+            <CircularProgress size={60} />
+          </Box>
 
   return (
     <Box>

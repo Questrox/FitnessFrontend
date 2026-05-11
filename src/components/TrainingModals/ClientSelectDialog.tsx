@@ -51,7 +51,9 @@ export function ClientSelectDialog({ open, onClose, onSelect }: Props) {
         />
 
         {isLoading ? (
-        <CircularProgress />
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 150 }}>
+          <CircularProgress size={60} />
+        </Box>
         ) : (
         <GridLegacy container spacing={2}>
             {clients?.totalCount === 0 ? (

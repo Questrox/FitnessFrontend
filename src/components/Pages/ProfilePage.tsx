@@ -165,18 +165,13 @@ const ProfilePage = () => {
   );
 }
 
-  if (isLoading)
-    return <CircularProgress/>;
-
-  if (!user)
-    return <Typography>Не удалось получить пользователя</Typography>
-
   return (
   <Box sx={{ minHeight: "100vh", bgcolor: "background.default", py: 6 }}>
     <Container maxWidth="lg">
       <Card
         variant="outlined"
         sx={(theme) => ({
+          minHeight: 500,
           borderRadius: 3,
           borderWidth: 2,
           transition: theme.transitions.create("border-color", {
@@ -208,17 +203,20 @@ const ProfilePage = () => {
             Просмотр и управление аккаунтом
           </Typography>
         </Box>
-
+        {isLoading ? (
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 500 }}>
+          <CircularProgress size={60} />
+        </Box>) : (
         <Box sx={{ p: 4 }}>
           {/* Actions */}
-        {id && <Box
-          sx={{
-            display: "flex",
-            gap: 2,
-            mb: 3,
-            flexWrap: "wrap",
-          }}
-        >
+          {id && <Box
+            sx={{
+              display: "flex",
+              gap: 2,
+              mb: 3,
+              flexWrap: "wrap",
+            }}
+          >
           <Button
             variant="contained"
             onClick={handleGenerateCredentials}
@@ -273,6 +271,7 @@ const ProfilePage = () => {
                                                         hidePaid={hidePaidClasses}
                                                         setHidePaid={setHidePaidClasses} />}
         </Box>
+      )}
       </Card>
     </Container>
   </Box>

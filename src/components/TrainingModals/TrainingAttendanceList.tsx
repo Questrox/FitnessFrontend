@@ -29,7 +29,9 @@ export function TrainingAttendanceList({
   const { userRole, user } = useAuth();
   
   if (!reservations)
-    return <CircularProgress />
+    return <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 150 }}>
+              <CircularProgress size={60} />
+            </Box>
   
   const confirmedCount = reservations.filter((r) => r.reservationStatusId === 2).length;
   const totalCount = reservations.length;

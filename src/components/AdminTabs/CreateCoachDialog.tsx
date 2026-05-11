@@ -2,6 +2,7 @@ import { Dialog, DialogTitle, DialogContent, Stack, TextField, Box, Button, Typo
 import { useState } from "react";
 import { apiClient } from "../../api/apiClient";
 import { CredentialsPrint } from "./CredentialsPrint";
+import { useSnackbar } from "../../context/SnackbarContext";
 
 interface CreateCoachDialogProps {
   isOpen: boolean;
@@ -19,6 +20,8 @@ const getImageSrc = (path: string) => {
 
 
 export function CreateCoachDialog({ isOpen, onClose, onSuccess, setCredentials }: CreateCoachDialogProps) {
+  const {showSnackbar} = useSnackbar();
+
   const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [yearsExperience, setYearsExperience] = useState("");
@@ -37,7 +40,7 @@ export function CreateCoachDialog({ isOpen, onClose, onSuccess, setCredentials }
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      alert("Некорректный формат файла, допустимы только PNG, JPG и WebP");
+      showSnackbar("Некорректный формат файла, допустимы только PNG, JPG и WebP", "error");
       return;
     }
 

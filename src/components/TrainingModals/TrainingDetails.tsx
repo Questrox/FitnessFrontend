@@ -22,6 +22,7 @@ import { ClientSelectDialog } from "./ClientSelectDialog";
 import { TrainingAttendanceList } from "./TrainingAttendanceList";
 import { useConfirm } from "material-ui-confirm";
 import { CoachSelectDialog } from "./CoachSelectDialog";
+import { useSnackbar } from "../../context/SnackbarContext";
 
 interface TrainingModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ interface TrainingModalProps {
 export function TrainingDetails({ isOpen, onClose, training, setTraining, refreshTrainingList, onCancelOrCompleteTraining }: TrainingModalProps) {
   const theme = useTheme();
   const confirm = useConfirm();
+  const {showSnackbar} = useSnackbar();
   const [tab, setTab] = useState<"details" | "attendance">("details");
 
   const { userRole, user } = useAuth();
@@ -120,7 +122,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, refres
       setView("details");
       await refreshTrainingList();
     } catch (error: any) {
-      alert(error.message);
+      showSnackbar(error.message, "error");
     }
   }
 
@@ -217,7 +219,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, refres
         setReservations(updatedReservations);
         console.log(result);
       } catch (error: any) {
-        alert(error.message);
+        showSnackbar(error.message, "error");
       }
     }
   }
@@ -231,7 +233,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, refres
         setTraining(result);
         await onCancelOrCompleteTraining(result.startDate!);
       } catch (error: any) {
-        alert(error);
+        showSnackbar(error.message, "error");
       }
     }
   }

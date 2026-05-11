@@ -64,7 +64,6 @@ export function ClientManagement() {
 
   const handleCreateClient = async (e: React.FormEvent) => {
     e.preventDefault();
-    //alert(JSON.stringify(newClientData, null, 2));
 
     try
     {
@@ -133,7 +132,10 @@ export function ClientManagement() {
       </Box>
 
       {/* List */}
-      {isLoading ? <CircularProgress/> : 
+      {isLoading ? 
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 150 }}>
+          <CircularProgress size={60} />
+        </Box> : 
         <GridLegacy container spacing={3}>
           {filteredClients?.items?.map((client) => {
 
@@ -193,7 +195,7 @@ export function ClientManagement() {
       }
 
       {/* Empty */}
-      {filteredClients?.totalCount === 0 && (
+      {!isLoading && filteredClients?.totalCount === 0 && (
         <Card sx={{ mt: 3 }}>
           <CardContent sx={{ textAlign: "center", py: 6 }}>
             <PersonIcon sx={{ fontSize: 60, color: "text.disabled" }} />

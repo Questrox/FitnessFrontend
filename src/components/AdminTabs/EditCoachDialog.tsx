@@ -27,6 +27,7 @@ import { apiClient } from "../../api/apiClient";
 import { Dayjs } from "dayjs";
 import { TimePicker } from "@mui/x-date-pickers";
 import { useConfirm } from "material-ui-confirm";
+import { useSnackbar } from "../../context/SnackbarContext";
 
 const daysOfWeek = [
   { value: 1, label: "Понедельник" },
@@ -51,6 +52,7 @@ interface EditCoachDialogProps {
 export function EditCoachDialog({ isOpen, onClose, coach, setCoach, coaches, setCoaches, setCredentials }: EditCoachDialogProps) {
   const theme = useTheme();
   const confirm = useConfirm();
+  const {showSnackbar} = useSnackbar();
 
   const [tab, setTab] = useState(0);
   const [error, setError] = useState("");
@@ -86,7 +88,7 @@ export function EditCoachDialog({ isOpen, onClose, coach, setCoach, coaches, set
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      alert("Некорректный формат файла, допустимы только PNG, JPG и WebP");
+      showSnackbar("Некорректный формат файла, допустимы только PNG, JPG и WebP", "error");
       return;
     }
 
@@ -133,7 +135,7 @@ export function EditCoachDialog({ isOpen, onClose, coach, setCoach, coaches, set
 
       const updatedCoaches = coaches.map(c => c.id === coach!.id ? updatedCoach : c);
       setCoaches(updatedCoaches);
-      alert("Слот расписания добавлен!");
+      showSnackbar("Слот расписания добавлен", "success");
     } catch (error: any)
     {
       setScheduleError(error.message);
@@ -184,7 +186,7 @@ export function EditCoachDialog({ isOpen, onClose, coach, setCoach, coaches, set
     catch (error: any) {
       setError(error.message);
     }
-    alert("Изменения сохранены!");
+    showSnackbar("Изменения сохранены", "success")
   };
 
   const handleClose = () => {

@@ -107,7 +107,7 @@ const Header = () => {
               color="inherit"
               onClick={() => {
                 navigate("/")
-                setTimeout(() => logout(), 200); //Чтобы успел выполниться переход на главную
+                logout();
               }}
               sx={{ ml: 1 }}
             >

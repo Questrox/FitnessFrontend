@@ -299,8 +299,9 @@ export function SchedulePage() {
 
         {/* Schedule */}
         {isLoading ? (
-          <CircularProgress />
-        ) : !hasTrainingsForDay ? (
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 100 }}>
+          <CircularProgress size={60} />
+        </Box>) : !hasTrainingsForDay ? (
           <Card
             sx={{
               mt: 2,

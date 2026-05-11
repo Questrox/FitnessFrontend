@@ -141,7 +141,9 @@ export function MembershipManagement() {
   };
 
   if (isLoading)
-    return <CircularProgress/>
+    return <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 150 }}>
+            <CircularProgress size={60} />
+          </Box>
 
   return (
     <Box>

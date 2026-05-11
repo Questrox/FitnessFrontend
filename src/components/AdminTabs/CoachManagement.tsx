@@ -65,7 +65,9 @@ export function CoachManagement() {
   }
 
   if (isLoading)
-    return <CircularProgress />
+    return <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 150 }}>
+            <CircularProgress size={60} />
+          </Box>
 
   return (
     <Box>
@@ -103,7 +105,7 @@ export function CoachManagement() {
               {/* Фото */}
               <Box
                 sx={{
-                  maxHeight: 300,
+                  height: 250,
                   position: "relative",
                   bgcolor: "grey.100",
                 }}
