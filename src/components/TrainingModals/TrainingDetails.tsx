@@ -11,6 +11,7 @@ import {
   CircularProgress,
   Tab,
   Tabs,
+  Alert,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { ClientDTO, CoachDTO, CreateTrainingReservationDTO, ReservationForTrainingDTO, TrainingDTO } from "../../api/g";
@@ -241,7 +242,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, refres
       <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>
         {trainingType.name}
       </DialogTitle>
-      {(userRole === "Coach" || userRole === "Admin") && (
+      {(userRole === "Coach" || userRole === "Admin") && training.trainingStatusId !== 3 && (
       <Tabs
         value={tab}
         onChange={(_, v) => setTab(v)}
@@ -337,28 +338,24 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, refres
           )}
 
           {!canBook && !isLoading && (
-            <Typography
-              variant="body2"
-              color={
+            <Alert 
+              severity={
                 message.includes("Вы уже записаны") || message.includes("Клиент уже записан")
                   ? "success" 
                   : "error"
               }
-              textAlign="center"
-              fontWeight="bold"
+              sx={{ mt: 2 }}
             >
               {message}
-            </Typography>
+            </Alert>
           )}
           {cancelError && (
-            <Typography
-              variant="body2"
-              textAlign="center"
-              fontWeight="bold"
-              color="error"
+            <Alert
+              severity="error"
+              sx={{ mt: 2 }}
             >
               {cancelError}
-            </Typography>
+            </Alert>
           )}
 
           {userRole === "Admin" && training?.trainingStatusId === 1 && (

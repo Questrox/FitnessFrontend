@@ -14,7 +14,8 @@ import {
   Chip,
   GridLegacy,
   CircularProgress,
-  Pagination
+  Pagination,
+  Alert
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import PhoneIcon from "@mui/icons-material/Phone";
@@ -163,14 +164,6 @@ export function ClientManagement() {
                         <Typography variant="body2" color="text.secondary">
                           @{client.user?.userName}
                         </Typography>
-
-                        {/* {membership && (
-                          <Chip
-                            label={membership.name}
-                            color="primary"
-                            sx={{ mt: 1 }}
-                          />
-                        )} */}
                       </Box>
                     </Box>
 
@@ -181,23 +174,6 @@ export function ClientManagement() {
                           {client.user?.phoneNumber}
                         </Typography>
                       </Box>
-
-                      {/* {membership && (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                            mt: 1,
-                          }}
-                        >
-                          <CalendarTodayIcon fontSize="small" />
-                          <Typography variant="body2">
-                            Expires in{" "}
-                            <strong>{daysUntilExpiration} days</strong>
-                          </Typography>
-                        </Box>
-                      )} */}
                     </Box>
 
                     <Button
@@ -269,7 +245,14 @@ export function ClientManagement() {
               }
             />
           </Box>
-          {error && <Typography color="error" marginTop={1}>{error}</Typography>}
+          {error && (
+            <Alert
+              severity="error"
+              sx={{ mt: 2 }}
+            >
+              {error}
+            </Alert>
+          )}
         </DialogContent>
 
         <DialogActions>

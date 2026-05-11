@@ -9,6 +9,7 @@ import {
   Stack,
   Typography,
   CircularProgress,
+  Alert,
 } from "@mui/material";
 import { Autocomplete } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
@@ -160,7 +161,12 @@ export function CreateTrainingDialog({
           />
 
           {error && (
-            <Typography color="error">{error}</Typography>
+            <Alert
+              severity="error"
+              sx={{ mt: 2 }}
+            >
+              {error}
+            </Alert>
           )}
         </Stack>
       </DialogContent>

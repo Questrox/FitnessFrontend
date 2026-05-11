@@ -1,4 +1,4 @@
-import { Dialog, DialogTitle, DialogContent, Stack, TextField, Box, Button, Typography, DialogActions } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, Stack, TextField, Box, Button, Typography, DialogActions, Alert } from "@mui/material";
 import { useState } from "react";
 import { apiClient } from "../../api/apiClient";
 import { CredentialsPrint } from "./CredentialsPrint";
@@ -104,7 +104,16 @@ export function CreateCoachDialog({ isOpen, onClose, onSuccess, setCredentials }
             label="Опыт (лет)"
             type="number"
             value={yearsExperience}
-            onChange={(e) => setYearsExperience(e.target.value)}
+            onChange={(e) => {
+              if (e.target.value === "")
+              {
+                setYearsExperience("");
+                return;
+              }
+              const raw = e.target.value;
+              const value = Math.max(0, Number(raw));
+              setYearsExperience(value.toString());
+            }}
             InputProps={{ inputProps: { min: 0 } }}
             fullWidth
             required
@@ -143,9 +152,12 @@ export function CreateCoachDialog({ isOpen, onClose, onSuccess, setCredentials }
 
           {/* Ошибка */}
           {error && (
-            <Typography color="error">
+            <Alert
+              severity="error"
+              sx={{ mt: 2 }}
+            >
               {error}
-            </Typography>
+            </Alert>
           )}
         </Stack>
       </Box>

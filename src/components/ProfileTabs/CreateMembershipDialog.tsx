@@ -184,7 +184,14 @@ export const CreateMembershipDialog = ({
                   </Alert>
                 )}
               </Stack>
-              {error && <Typography color="error" marginTop={1}>{error}</Typography>}
+              {error && (
+                <Alert
+                  severity="error"
+                  sx={{ mt: 2 }}
+                >
+                  {error}
+                </Alert>
+              )}
             </Box>
           </DialogContent>
 

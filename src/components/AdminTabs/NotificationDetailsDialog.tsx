@@ -50,10 +50,8 @@ export function NotificationDetailsDialog({
 
   return (
     <Dialog open={isOpen} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ pb: 1 }}>
-            <Typography variant="h6" fontWeight={600}>
-                Детали уведомлений
-            </Typography>
+        <DialogTitle sx={{ pb: 1, fontWeight: 600, fontSize: "1.25rem" }}>
+            Детали уведомлений
         </DialogTitle>
 
         <DialogContent>

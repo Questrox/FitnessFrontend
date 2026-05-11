@@ -345,7 +345,14 @@ export function ProfileInfo({ currUser, clientBonuses, setUser, membership, isAd
                   </Button>
                 </Box>
               </Box>
-              {error && <Typography color="error" marginTop={1}>{error}</Typography>}
+              {error && (
+                <Alert
+                  severity="error"
+                  sx={{ mt: 2 }}
+                >
+                  {error}
+                </Alert>
+              )}
               {!isAdminView && <Button
                   variant="outlined"
                   fullWidth

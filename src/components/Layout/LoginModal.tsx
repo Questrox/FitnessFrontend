@@ -1,7 +1,7 @@
 import { useAuth } from "../../context/AuthContext"
 import { useNavigate } from "react-router-dom"
 import { useState } from "react";
-import { Box, Button, CircularProgress, Modal, Stack, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Modal, Stack, TextField, Typography } from "@mui/material";
 
 const modalStyle = {
   // Стиль для модального окна (Material UI). Используется для расположения по центру окна и стилизации.
@@ -109,7 +109,14 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose }) => {
               fullWidth
             />
 
-            {error && <Typography color="error">{error}</Typography>}
+            {error && (
+              <Alert
+                severity="error"
+                sx={{ mt: 2 }}
+              >
+                {error}
+              </Alert>
+            )}
             {/* Если есть сообщение об ошибке, отображаем его в красном цвете. */}
 
             <Button

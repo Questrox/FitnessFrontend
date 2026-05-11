@@ -54,7 +54,10 @@ const ProfilePage = () => {
   // для сохранения выбранной вкладки
   useEffect(() => {
     if (activeTab !== searchParams.get("tab")) {
-      setSearchParams({ tab: activeTab });
+      setSearchParams(
+      { tab: activeTab },
+      { replace: true }
+    );
     }
   }, [activeTab, searchParams, setSearchParams]);
 

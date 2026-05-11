@@ -1,4 +1,5 @@
 import {
+  Alert,
   Box,
   Button,
   Card,
@@ -250,7 +251,16 @@ export function EditCoachDialog({ isOpen, onClose, coach, setCoach, coaches, set
                 label="Стаж (лет)"
                 type="number"
                 value={yearsExperience}
-                onChange={(e) => setYearsExperience(e.target.value)}
+                onChange={(e) => {
+                  if (e.target.value === "")
+                  {
+                    setYearsExperience("");
+                    return;
+                  }
+                  const raw = e.target.value;
+                  const value = Math.max(0, Number(raw));
+                  setYearsExperience(value.toString());
+                }}
                 fullWidth
                 required
                 inputProps={{ min: 0 }}
@@ -291,7 +301,14 @@ export function EditCoachDialog({ isOpen, onClose, coach, setCoach, coaches, set
                   </Button>
                 </Stack>
               </Box>
-              {error && <Typography color="error" marginTop={1}>{error}</Typography>}
+              {error && (
+                <Alert
+                  severity="error"
+                  sx={{ mt: 2 }}
+                >
+                  {error}
+                </Alert>
+              )}
 
               {/* Кнопки */}
               <Stack

@@ -26,7 +26,7 @@ const AdminPage = () => {
     if (location.pathname.includes("memberships")) return "memberships";
     if (location.pathname.includes("notifications")) return "notifications";
     if (location.pathname.includes("coaches")) return "coaches";
-    return "";
+    return "memberships";
   })();
 
   const handleChange = (_: any, value: string) => {

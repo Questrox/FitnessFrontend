@@ -1,4 +1,4 @@
-import { Dialog, DialogTitle, DialogContent, Stack, Autocomplete, TextField, Typography, DialogActions, Button } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, Stack, Autocomplete, TextField, Typography, DialogActions, Button, Alert } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
 import { useState, useEffect } from "react";
 import { apiClient } from "../../api/apiClient";
@@ -123,7 +123,14 @@ export function CreateIndividualTrainingDialog({
             </Typography>
           )}
 
-          {error && <Typography color="error">{error}</Typography>}
+          {error && (
+            <Alert
+              severity="error"
+              sx={{ mt: 2 }}
+            >
+              {error}
+            </Alert>
+          )}
 
           {/* КЛИЕНТ */}
           <Button

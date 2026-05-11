@@ -1,4 +1,4 @@
-import { DialogTitle, Stack, Button, Typography, DialogContent, Card, CardContent, Box, TextField, DialogActions } from "@mui/material";
+import { DialogTitle, Stack, Button, Typography, DialogContent, Card, CardContent, Box, TextField, DialogActions, Alert } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 interface PaymentFormProps {
@@ -65,7 +65,7 @@ export function PaymentForm({
                 <TextField
                   label={`Бонусы (доступно: ${clientBonuses})`}
                   type="number"
-                  value={bonuses}
+                  value={bonuses.toString()}
                   onChange={(e) => {
                     const raw = e.target.value;
                     const value = raw === "" ? 0 : Number(raw);
@@ -95,7 +95,14 @@ export function PaymentForm({
             </CardContent>
           </Card>
 
-          {error && <Typography color="error">{error}</Typography>}
+          {error && (
+            <Alert
+              severity="error"
+              sx={{ mt: 2 }}
+            >
+              {error}
+            </Alert>
+          )}
         </Stack>
       </DialogContent>
 

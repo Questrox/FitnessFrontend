@@ -15,6 +15,7 @@ import {
   Dialog,
   DialogContent,
   DialogActions,
+  Alert,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -242,9 +243,19 @@ export function TrainingTypeManagement() {
                   label="Макс. клиентов"
                   type="number"
                   value={formData.maxClients}
-                  onChange={(e) =>
-                    setFormData({ ...formData, maxClients: e.target.value })
-                  }
+                  onChange={(e) => {
+                    if (e.target.value === "")
+                    {
+                      setFormData({
+                        ...formData,
+                        maxClients: "",
+                      });
+                      return;
+                    }
+
+                    const value = Math.max(Number(e.target.value), 1);
+                    setFormData({ ...formData, maxClients: value.toString() })
+                  }}
                   required
                 />
               </GridLegacy>
@@ -255,12 +266,22 @@ export function TrainingTypeManagement() {
                   label="Длительность (мин)"
                   type="number"
                   value={formData.duration}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    if (e.target.value === "")
+                    {
+                      setFormData({
+                        ...formData,
+                        duration: "",
+                      });
+                      return;
+                    }
+
+                    const value = Math.max(Number(e.target.value), 1);
                     setFormData({
                       ...formData,
-                      duration: e.target.value,
-                    })
-                  }
+                      duration: value.toString(),
+                    });
+                  }}
                   required
                 />
               </GridLegacy>
@@ -271,9 +292,21 @@ export function TrainingTypeManagement() {
                   label="Цена"
                   type="number"
                   value={formData.price}
-                  onChange={(e) =>
-                    setFormData({ ...formData, price: e.target.value })
-                  }
+                  onChange={(e) => {
+                    if (e.target.value === "")
+                    {
+                      setFormData({
+                        ...formData,
+                        price: "",
+                      });
+                      return;
+                    }
+                    const value = Math.max(Number(e.target.value), 0);
+                    setFormData({
+                      ...formData,
+                      price: value.toString(),
+                    });
+                  }}
                   required
                 />
               </GridLegacy>
@@ -284,12 +317,22 @@ export function TrainingTypeManagement() {
                   label="Кэшбэк (%)"
                   type="number"
                   value={formData.cashbackPercentage}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    if (e.target.value === "")
+                    {
+                      setFormData({
+                        ...formData,
+                        cashbackPercentage: "",
+                      });
+                      return;
+                    }
+
+                    const value = Math.min(100, Math.max(Number(e.target.value), 0));
                     setFormData({
                       ...formData,
-                      cashbackPercentage: e.target.value,
-                    })
-                  }
+                      cashbackPercentage: value.toString(),
+                    });
+                  }}
                   required
                 />
               </GridLegacy>
@@ -309,7 +352,14 @@ export function TrainingTypeManagement() {
                   }
                   required
                 />
-                {error && <Typography color="error" marginTop={1}>{error}</Typography>}
+                {error && (
+                  <Alert
+                    severity="error"
+                    sx={{ mt: 2 }}
+                  >
+                    {error}
+                  </Alert>
+                )}
               </GridLegacy>
               
 

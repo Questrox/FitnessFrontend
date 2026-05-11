@@ -43,14 +43,16 @@ export function NotificationsManagement() {
             updatedTraining.notifications = updatedNotifications;
             updatedTraining.notNotifiedCount! -= 1;
             setSelectedTraining(updatedTraining);
-
-            setNotifications(prevNotifications =>
-                    prevNotifications.map(dto =>
-                        dto.training!.id === updatedTraining.training!.id
-                            ? updatedTraining
-                            : dto
-                    )
-            );
+            if (updatedTraining.notNotifiedCount! > 0) // если нужно уведомить еще людеЙ, просто обновляем сущность в списке
+                setNotifications(prevNotifications =>
+                        prevNotifications.map(dto =>
+                            dto.training!.id === updatedTraining.training!.id
+                                ? updatedTraining
+                                : dto
+                        )
+                );
+            else // иначе удаляем ее из списка
+                setNotifications(prevNotifications => prevNotifications.filter(dto => dto.training!.id !== updatedTraining.training!.id));
         } catch (error: any)
         {
             console.error("Ошибка при подтверждении уведомления клиента: " + error);

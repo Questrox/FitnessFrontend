@@ -74,7 +74,7 @@ const App: React.FC = () => {
             <Route path="/team" element={<TeamPage/>}/>
             <Route path="/profile" element={
               <ProtectedRoute>
-                <ProfilePage/>
+                <ProfilePage key="my-profile"/>
               </ProtectedRoute>
             }/>
             <Route
@@ -94,7 +94,7 @@ const App: React.FC = () => {
             </Route>
             <Route path="profiles/:id" element={
               <ProtectedRoute allowedRoles={[UserRole.Admin]}>
-                <ProfilePage/>
+                <ProfilePage key="client-profile"/>
               </ProtectedRoute>
               }/>
           </Routes>

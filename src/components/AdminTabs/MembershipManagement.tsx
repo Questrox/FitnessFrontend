@@ -15,7 +15,8 @@ import {
   IconButton,
   Chip,
   GridLegacy,
-  CircularProgress
+  CircularProgress,
+  Alert
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -179,9 +180,26 @@ export function MembershipManagement() {
                   type="number"
                   label="Длительность (мес.)"
                   value={formData.duration}
-                  onChange={(e) =>
-                    setFormData({ ...formData, duration: e.target.value })
-                  }
+                  onChange={(e) => {
+                    if (e.target.value === "")
+                    {
+                      setFormData({
+                        ...formData,
+                        duration: "",
+                      });
+                      return;
+                    }
+                    const value = Math.max(1, Number(e.target.value));
+
+                    setFormData({
+                      ...formData,
+                      duration: value.toString(),
+                    });
+                  }}
+                  inputProps={{
+                    min: 1,
+                    step: 1,
+                  }}
                   required
                 />
               </GridLegacy>
@@ -192,7 +210,26 @@ export function MembershipManagement() {
                   type="number"
                   label="Цена"
                   value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  onChange={(e) => {
+                    if (e.target.value === "")
+                    {
+                      setFormData({
+                        ...formData,
+                        price: "",
+                      });
+                      return;
+                    }
+                    const value = Math.max(0, Number(e.target.value));
+
+                    setFormData({
+                      ...formData,
+                      price: value.toString(),
+                    });
+                  }}
+                  inputProps={{
+                    min: 0,
+                    step: 1,
+                  }}
                   required
                 />
               </GridLegacy>
@@ -203,9 +240,30 @@ export function MembershipManagement() {
                   type="number"
                   label="Кэшбэк (%)"
                   value={formData.cashbackPercentage}
-                  onChange={(e) =>
-                    setFormData({ ...formData, cashbackPercentage: e.target.value })
-                  }
+                  onChange={(e) => {
+                    if (e.target.value === "")
+                    {
+                      setFormData({
+                        ...formData,
+                        cashbackPercentage: "",
+                      });
+                      return;
+                    }
+                    const value = Math.min(
+                      100,
+                      Math.max(0, Number(e.target.value))
+                    );
+
+                    setFormData({
+                      ...formData,
+                      cashbackPercentage: value.toString(),
+                    });
+                  }}
+                  inputProps={{
+                    min: 0,
+                    max: 100,
+                    step: 1,
+                  }}
                   required
                 />
               </GridLegacy>
@@ -224,7 +282,14 @@ export function MembershipManagement() {
                 />
               </GridLegacy>
             </GridLegacy>
-          {error && <Typography color="error" marginTop={1}>{error}</Typography>}
+          {error && (
+            <Alert
+              severity="error"
+              sx={{ mt: 2 }}
+            >
+              {error}
+            </Alert>
+          )}
           </Box>
         </DialogContent>
 
