@@ -94,7 +94,6 @@ export function CoachSelectDialog({
             sx={{
               mt: 2,
               flexGrow: 1,
-              bgcolor: "action.hover",
               borderRadius: 2,
             }}
           >

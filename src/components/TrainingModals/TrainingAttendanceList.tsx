@@ -39,23 +39,25 @@ export function TrainingAttendanceList({
   return (
     <Stack>
       {/* Сводка */}
-      <Box
-        sx={{
-          bgcolor: "action.hover",
-          borderRadius: 2,
-          p: 2,
-          border: "1px solid",
-          borderColor: "divider",
-          mb: 3
-        }}
-      >
-        <Typography variant="body2" color="text.secondary">
-          Отмеченных клиентов:{" "}
-          <Typography component="span" fontWeight={600} color="text.primary">
-            {confirmedCount} / {totalCount}
-          </Typography>{" "}
-        </Typography>
-      </Box>
+      {training.trainingStatusId !== 3 && 
+        <Box
+          sx={{
+            bgcolor: "action.hover",
+            borderRadius: 2,
+            p: 2,
+            border: "1px solid",
+            borderColor: "divider",
+            mb: 3
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            Отмеченных клиентов:{" "}
+            <Typography component="span" fontWeight={600} color="text.primary">
+              {confirmedCount} / {totalCount}
+            </Typography>{" "}
+          </Typography>
+        </Box>
+      }
 
       {/* Список клиентов */}
       {reservations.length > 0 ? (
@@ -99,21 +101,23 @@ export function TrainingAttendanceList({
                     </Box>
 
                     {/* Кнопка */}
-                    <Button
-                      size="small"
-                      variant={
-                        res.reservationStatusId === 2 ? "outlined" : "outlined"
-                      }
-                      color={
-                        res.reservationStatusId === 2 ? "inherit" : "primary"
-                      }
-                      onClick={() => onConfirmAttendance(res.id!)}
-                      disabled={res.reservationStatusId === 2 || userRole !== "Coach" || training.trainingStatusId !== 1 || training.coach?.userId !== user?.userId}
-                    >
-                      {res.reservationStatusId === 2
-                        ? "Посещение отмечено"
-                        : "Отметить посещение"}
-                    </Button>
+                    {training.trainingStatusId !== 3 &&
+                      <Button
+                        size="small"
+                        variant={
+                          res.reservationStatusId === 2 ? "outlined" : "outlined"
+                        }
+                        color={
+                          res.reservationStatusId === 2 ? "inherit" : "primary"
+                        }
+                        onClick={() => onConfirmAttendance(res.id!)}
+                        disabled={res.reservationStatusId === 2 || userRole !== "Coach" || training.trainingStatusId !== 1 || training.coach?.userId !== user?.userId}
+                      >
+                        {res.reservationStatusId === 2
+                          ? "Посещение отмечено"
+                          : res.reservationStatusId === 5 ? "Клиент не пришел" : "Отметить посещение"}
+                      </Button>
+                    }
                   </Stack>
                 </CardContent>
               </Card>
@@ -138,7 +142,7 @@ export function TrainingAttendanceList({
             disabled={userRole !== "Coach" || training.trainingStatusId !== 1 || training.coach?.userId !== user?.userId}
             onClick={onMarkCompleted}
           >
-            {training.trainingStatusId === 1 ? "Завершить тренировку" : "Тренировка проведена"}
+            {training.trainingStatusId === 1 ? "Завершить тренировку" : training.trainingStatusId === 2 ? "Тренировка проведена" : "Тренировка отменена"}
           </Button>
         </Box>
       )}

@@ -19,6 +19,7 @@ export function ClientSelectDialog({ open, onClose, onSelect }: Props) {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    setSearchQuery("");
     if (!open) return;
 
     fetch(searchQuery, page);

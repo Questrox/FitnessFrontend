@@ -1,4 +1,4 @@
-import { Dialog, DialogTitle, DialogContent, Stack, Autocomplete, TextField, Typography, DialogActions, Button, Alert } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, Stack, Autocomplete, TextField, Typography, DialogActions, Button, Alert, CircularProgress, Box } from "@mui/material";
 import dayjs, { Dayjs } from "dayjs";
 import { useState, useEffect } from "react";
 import { apiClient } from "../../api/apiClient";
@@ -111,16 +111,17 @@ export function CreateIndividualTrainingDialog({
           />
           
           {/* СТАТУС ПРОВЕРКИ */}
-          {isChecking && <Typography>Проверка...</Typography>}
+          {isChecking && <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                            <CircularProgress />
+                          </Box>}
 
           {message && (
-            <Typography
-              color={
-                message.includes("можно") ? "success.main" : "error"
-              }
+            <Alert 
+              severity="error"
+              sx={{ mt: 2 }}
             >
               {message}
-            </Typography>
+            </Alert>
           )}
 
           {error && (

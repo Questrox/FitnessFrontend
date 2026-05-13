@@ -133,6 +133,8 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, refres
         const result = await apiClient.cancelTraining(training!.id!);
         setTraining(result);
         setCancelError("");
+        setMessage("");
+        setSelectedClient(null);
         await onCancelOrCompleteTraining(result!.startDate!);
       } catch (error: any)
       {
@@ -244,7 +246,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, refres
       <DialogTitle sx={{ fontWeight: 700, fontSize: 24 }}>
         {trainingType.name}
       </DialogTitle>
-      {(userRole === "Coach" || userRole === "Admin") && training.trainingStatusId !== 3 && (
+      {(userRole === "Coach" || userRole === "Admin") && (
       <Tabs
         value={tab}
         onChange={(_, v) => setTab(v)}
@@ -342,7 +344,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, refres
           {!canBook && !isLoading && (
             <Alert 
               severity={
-                message.includes("Вы уже записаны") || message.includes("Клиент уже записан")
+                message.includes("Вы уже записаны на эту тренировку") || message.includes("Клиент уже записан на эту тренировку")
                   ? "success" 
                   : "error"
               }

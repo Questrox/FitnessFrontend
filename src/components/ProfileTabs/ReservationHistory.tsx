@@ -70,6 +70,8 @@ export function ReservationHistory({
     "Посещена": "visited",
     "Оплачена": "paid",
     "Отменена": "cancelled",
+    "Не посещена": "cancelled",
+    "Тренировка отменена": "cancelled"
   } as const;
 
   const statusConfig = {
