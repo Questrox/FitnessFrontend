@@ -316,7 +316,7 @@ export function MembershipManagement() {
                   </Typography>
 
                   <Box mt={1} display="flex" gap={1} flexWrap="wrap">
-                    <Chip label={`${membershipType.price} ₽`} color="success" />
+                    <Chip label={`${membershipType.price} ₽`} color="info" />
                     <Chip label={`${membershipType.duration} мес.`} />
                     <Chip label={`${membershipType.cashbackPercentage}%`} color="secondary" />
                   </Box>

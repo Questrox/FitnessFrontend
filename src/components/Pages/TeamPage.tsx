@@ -63,7 +63,11 @@ export function TeamPage() {
 
   // Функция для получения расписания по дню
   const getSchedulesForDay = (schedules: CoachScheduleDTO[] | undefined, dayValue: number) => {
-    return schedules?.filter(s => s.weekDay === dayValue) || [];
+    return schedules?.filter(s => s.weekDay === dayValue).sort((a, b) => {
+        // Сравниваем строки времени "HH:MM:SS" или "HH:MM"
+        if (!a.startTime || !b.startTime) return 0;
+        return a.startTime.localeCompare(b.startTime);
+      }) || [];
   };
 
   // Функция для форматирования времени (обрезает секунды)
@@ -144,8 +148,6 @@ export function TeamPage() {
           useFlexGap
         >
           {coaches.map((coach) => {
-            const hasSchedule = coach.coachSchedules && coach.coachSchedules.length > 0;
-            
             return (
               <Card
                 key={coach.id}
@@ -247,7 +249,6 @@ export function TeamPage() {
                         </Typography>
                       </Stack>
 
-                      {hasSchedule ? (
                         <Stack spacing={1.5}>
                           {daysOfWeek.map((day) => {
                             const daySchedules = getSchedulesForDay(coach.coachSchedules, day.value);
@@ -271,7 +272,6 @@ export function TeamPage() {
                                       key={idx}
                                       variant="body2"
                                       component="span"
-                                      sx={{ mr: 1 }}
                                     >
                                       {formatTime(slot.startTime!)}-{formatTime(slot.endTime!)}
                                       {idx < daySchedules.length - 1 && ", "}
@@ -291,15 +291,6 @@ export function TeamPage() {
                             );
                           })}
                         </Stack>
-                      ) : (
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          fontStyle="italic"
-                        >
-                          Расписание не указано
-                        </Typography>
-                      )}
                     </Box>
                   </Box>
                 </CardContent>

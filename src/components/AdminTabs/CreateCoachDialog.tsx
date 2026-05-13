@@ -114,7 +114,7 @@ export function CreateCoachDialog({ isOpen, onClose, onSuccess, setCredentials }
                 return;
               }
               const raw = e.target.value;
-              const value = Math.max(0, Number(raw));
+              const value = Math.min(Math.max(0, Number(raw)), 100);
               setYearsExperience(value.toString());
             }}
             InputProps={{ inputProps: { min: 0 } }}

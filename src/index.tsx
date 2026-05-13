@@ -9,6 +9,7 @@ import { ConfirmProvider } from 'material-ui-confirm';
 import { ruRU } from "@mui/material/locale"
 import "@fontsource/inter";
 import "./index.css" // Импорт глобальных стилей приложения.
+import ScrollToTop from './components/Layout/ScrollToTop';
 
 const theme = createTheme({
   palette: {
@@ -82,6 +83,7 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <BrowserRouter>
+    <ScrollToTop />
     {/* Обеспечиваем маршрутизацию для приложения. */}
     <ThemeProvider theme={theme}>
       {/* Обеспечиваем доступность темы для всех вложенных компонентов. */}

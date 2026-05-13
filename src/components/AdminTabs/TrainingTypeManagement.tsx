@@ -446,7 +446,7 @@ export function TrainingTypeManagement() {
                     </Box>
 
                     <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 1 }}>
-                      <Chip label={`${trainingType.price} ₽`} color="success" />
+                      <Chip label={`${trainingType.price} ₽`} color="info" />
                       <Chip label={`До ${trainingType.maxClients} чел.`} />
                       <Chip label={`${trainingType.cashbackPercentage}%`} color="secondary"/>
                     </Box>

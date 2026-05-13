@@ -260,7 +260,7 @@ export function EditCoachDialog({ isOpen, onClose, coach, setCoach, coaches, set
                     return;
                   }
                   const raw = e.target.value;
-                  const value = Math.max(0, Number(raw));
+                  const value = Math.min(Math.max(0, Number(raw)), 100);
                   setYearsExperience(value.toString());
                 }}
                 fullWidth

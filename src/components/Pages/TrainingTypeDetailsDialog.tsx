@@ -224,7 +224,7 @@ export const TrainingTypeDetailsDialog = ({
           to="/schedule"
           variant="contained"
           startIcon={<FitnessCenterIcon />}
-          onClick={() => {onClose(); window.scrollTo({ top: 0, behavior: "smooth" })}}
+          onClick={() => {onClose()}}
         >
           Перейти к расписанию
         </Button>

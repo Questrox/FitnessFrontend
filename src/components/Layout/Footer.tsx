@@ -33,7 +33,6 @@ const Root = () => {
                       textDecoration: "underline",
                     },
                   }}
-                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 >
                   Абонементы
                 </Typography>
@@ -49,7 +48,6 @@ const Root = () => {
                       textDecoration: "underline",
                     },
                   }}
-                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 >
                   Расписание занятий
                 </Typography>
