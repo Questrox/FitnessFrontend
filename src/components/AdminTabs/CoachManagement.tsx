@@ -105,7 +105,7 @@ export function CoachManagement() {
               {/* Фото */}
               <Box
                 sx={{
-                  height: 250,
+                  height: 300,
                   position: "relative",
                   bgcolor: "grey.100",
                 }}

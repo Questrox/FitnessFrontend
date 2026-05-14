@@ -175,7 +175,7 @@ export function TeamPage() {
                 {/* Photo */}
                 <Box
                   sx={{
-                    height: 360,
+                    height: 400,
                     overflow: "hidden",
                   }}
                 >

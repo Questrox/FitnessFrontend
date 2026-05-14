@@ -158,6 +158,8 @@ export function SchedulePage() {
     return `${monday.toLocaleDateString()} - ${sunday.toLocaleDateString()}`;
   };
 
+  // Сначала получаем только тренировки, которые будут в этот день, потом сортируем по времени начала, 
+  // чтобы в 1 слоте не было условно сначала 18:30, а потом 18:00
   const getTrainingsForDayAndTime = (day: string, time: string) => {
     return trainings.filter((training) => {
       if (!showCancelled && training.trainingStatusId === 3) return false;
@@ -169,11 +171,16 @@ export function SchedulePage() {
       const timeHour = parseInt(time.split(":")[0]);
 
       return start.getHours() === timeHour && (showPersonal ? training?.coach?.userId === user?.userId : true);
-    });
+    }).sort((a, b) => {
+      const dateA = new Date(a.startDate!);
+      const dateB = new Date(b.startDate!);
+      return dateA.getTime() - dateB.getTime();
+    });;
   };
 
   const hasTrainingsForDay = trainings.some((t) => {
     if (!showCancelled && t.trainingStatusId === 3) return false;
+    if (showPersonal && t.coach?.userId !== user?.userId) return false;
     const start = new Date(t.startDate!);
     const dayName = start.toLocaleDateString("ru-RU", { weekday: "long" });
     return dayName.toLowerCase() === selectedDay.toLowerCase();
@@ -398,7 +405,7 @@ export function SchedulePage() {
                                     {isFull ? "Нет мест" : getPlacesText(spotsLeft)}
                                   </Typography>
                                   <Typography fontWeight={600}>
-                                    {type.price! > 0 ? `${type.price} ₽` : "Бесплатная"}
+                                    {training.price! > 0 ? `${training.price} ₽` : "Бесплатная"}
                                   </Typography>
                                 </>
                               )}

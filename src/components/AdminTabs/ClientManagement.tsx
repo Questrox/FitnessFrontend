@@ -48,8 +48,9 @@ export function ClientManagement() {
   const pageSize = 6;
 
   useEffect(() => {
-    fetchClients(searchQuery, page);
-  }, [])
+    const delay = setTimeout(() => { fetchClients(searchQuery, page); }, 200);
+    return () => clearTimeout(delay);
+  }, [searchQuery])
     
   const fetchClients = async (query: string, pageNumber: number) => {
     setIsLoading(true);
@@ -112,7 +113,7 @@ export function ClientManagement() {
           fullWidth
           placeholder="Введите ФИО, логин или номер телефона"
           value={searchQuery}
-          onChange={(e) => { setSearchQuery(e.target.value); setPage(1); fetchClients(e.target.value, 1); }}
+          onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -150,7 +151,13 @@ export function ClientManagement() {
                     "&:hover": { boxShadow: 6 },
                   }}
                 >
-                  <CardContent sx={{ flexGrow: 1 }}>
+                  <CardContent
+                    sx={{
+                      flexGrow: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
                     <Box
                       sx={{
                         display: "flex",
@@ -169,23 +176,35 @@ export function ClientManagement() {
                       </Box>
                     </Box>
 
-                    <Box sx={{ mb: 2 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {/* Spacer */}
+                    <Box sx={{ flexGrow: 1 }} />
+
+                    {/* Bottom content */}
+                    <Box>
+                      <Box
+                        sx={{
+                          mb: 2,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
                         <PhoneIcon fontSize="small" />
+
                         <Typography variant="body2">
                           {client.user?.phoneNumber}
                         </Typography>
                       </Box>
-                    </Box>
 
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      endIcon={<ChevronRightIcon />}
-                      onClick={() => navigate("/profiles/" + client.id)}
-                    >
-                      Перейти в профиль
-                    </Button>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        endIcon={<ChevronRightIcon />}
+                        onClick={() => navigate("/profiles/" + client.id)}
+                      >
+                        Перейти в профиль
+                      </Button>
+                    </Box>
                   </CardContent>
                 </Card>
               </GridLegacy>

@@ -84,7 +84,6 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, refres
   }, [training, isOpen, selectedClient]);
 
   const checkReservationCreation = async () => {
-    console.log(selectedClient)
     if (isFull)
     {
       setIsLoading(false);

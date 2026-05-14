@@ -16,6 +16,7 @@ import {
   DialogContent,
   DialogActions,
   Alert,
+  Pagination,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -46,6 +47,14 @@ export function TrainingTypeManagement() {
     cashbackPercentage: "",
     photoPath: "",
   });
+
+  const [page, setPage] = useState(1);
+  const pageSize = 6;
+
+  const paginatedTrainingTypes = trainingTypes.slice(
+    (page - 1) * pageSize,
+    page * pageSize
+  );
 
   useEffect(() => {
     fetchTypes();
@@ -412,7 +421,7 @@ export function TrainingTypeManagement() {
 
       {/* List */}
       <GridLegacy container spacing={3}>
-        {trainingTypes.map((trainingType) => (
+        {paginatedTrainingTypes.map((trainingType) => (
           <GridLegacy item xs={12} md={6} key={trainingType.id}>
             <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
               <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column" }}>
@@ -472,7 +481,7 @@ export function TrainingTypeManagement() {
                       </Typography>
                     </GridLegacy>
                     <GridLegacy item xs={4}>
-                      <Typography variant="caption">Места</Typography>
+                      <Typography variant="caption">Кол-во мест</Typography>
                       <Typography fontWeight={700}>
                         {trainingType.maxClients}
                       </Typography>
@@ -491,6 +500,25 @@ export function TrainingTypeManagement() {
           </GridLegacy>
         ))}
       </GridLegacy>
+      <Box
+        display="flex"
+        justifyContent="center"
+        mt={4}
+      >
+        <Pagination
+          page={page}
+          count={Math.ceil(trainingTypes.length / pageSize)}
+          color="primary"
+          onChange={(_, value) => {
+            setPage(value);
+
+            window.scrollTo({
+              top: 0,
+              behavior: "smooth",
+            });
+          }}
+        />
+      </Box>
     </Box>
   );
 }

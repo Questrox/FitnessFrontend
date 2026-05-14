@@ -25,7 +25,15 @@ export function ClientSelectDialog({ open, onClose, onSelect }: Props) {
     fetch(searchQuery, page);
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+
+    const delay = setTimeout(() => { fetch(searchQuery, page) }, 200)
+    return () => clearTimeout(delay);
+  }, [searchQuery]);
+
   const fetch = async (query: string, pageNumber: number) => {
+    console.log("fetch");
     setIsLoading(true);
     const data = await apiClient.getPagedFilteredClients(pageNumber, pageSize, query);
     setClients(data);
@@ -47,7 +55,7 @@ export function ClientSelectDialog({ open, onClose, onSelect }: Props) {
           fullWidth
           placeholder="Введите ФИО, логин или номер телефона клиента"
           value={searchQuery}
-          onChange={(e) => {setSearchQuery(e.target.value); setPage(1); fetch(e.target.value, 1)}}
+          onChange={(e) => {setSearchQuery(e.target.value); setPage(1); }}
           sx={{ mb: 2 }}
         />
 
