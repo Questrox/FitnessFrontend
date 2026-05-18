@@ -78,29 +78,34 @@ export function ReservationHistory({
     pending: {
     color: "warning" as const,
     icon: <AccessTimeIcon fontSize="small" />,
+    style: "outlined"
     },
     visited: {
     color: "info" as const,
     icon: <CheckCircleIcon fontSize="small" />,
+    style: "filled"
     },
     paid: {
     color: "success" as const,
     icon: <CheckCircleIcon fontSize="small" />,
+    style: "filled"
     },
     cancelled: {
     color: "error" as const,
     icon: <CancelIcon fontSize="small" />,
+    style: "outlined"
     },
   } as const;
 
   type LabelKey = keyof typeof statusLabels;
 
   const filteredReservations = reservationsList.filter((tr) => {
-    if (hideCancelled && tr.reservationStatus!.name === "Отменена")
+    if (hideCancelled && (tr.reservationStatus!.name === "Отменена" || tr.reservationStatus!.name === "Не посещена" || tr.reservationStatus!.name === "Тренировка отменена"))
       return false;
 
     if (hidePaid && tr.reservationStatus!.name === "Оплачена")
       return false;
+    console.log(tr.id! + " " + tr.training?.startDate)
 
     return true;
   });
@@ -239,8 +244,13 @@ export function ReservationHistory({
                         mb: 2,
                       }}
                     >
-                      <Box>
-                        <Typography variant="h6" fontWeight={700} mb={1}>
+                      <Stack 
+                        direction="row" 
+                        justifyContent="space-between" 
+                        alignItems="center"
+                        spacing={2}
+                      >
+                        <Typography variant="h6" fontWeight={700}>
                           {reservation.training!.trainingType!.name}
                         </Typography>
 
@@ -248,9 +258,9 @@ export function ReservationHistory({
                           icon={config.icon}
                           label={reservation.reservationStatus!.name}
                           color={config.color}
-                          variant={"filled"}
+                          variant={"outlined"}
                         />
-                      </Box>
+                      </Stack>
                     </Box>
 
                     {/* Info */}

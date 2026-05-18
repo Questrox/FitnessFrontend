@@ -95,12 +95,13 @@ export function SchedulePage() {
   }, [userRole])
   
   useEffect(() => {
-    fetchWeekTrainings();
+    fetchWeekTrainings(true);
   }, [selectedWeek])
 
-  const fetchWeekTrainings = async () =>
+  const fetchWeekTrainings = async (showLoading = false) =>
   {
-    setIsLoading(true);
+    if (showLoading)
+      setIsLoading(true);
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0);

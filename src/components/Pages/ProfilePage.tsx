@@ -150,10 +150,11 @@ const ProfilePage = () => {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        minHeight: "75vh",
         display: "flex",
         justifyContent: "center",
         px: 2,
+        mb: 2
       }}
     >
       <CredentialsPrint

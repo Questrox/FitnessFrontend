@@ -55,6 +55,7 @@ export function ProfileInfo({ currUser, clientBonuses, setUser, membership, isAd
   const [passwordData, setPasswordData] = useState({
     oldPassword: "",
     newPassword: "",
+    confirmNewPassword: ""
   });
 
   const [editMode, setEditMode] = useState({
@@ -132,6 +133,13 @@ export function ProfileInfo({ currUser, clientBonuses, setUser, membership, isAd
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (passwordData.newPassword !== passwordData.confirmNewPassword)
+    {
+      setDialogError("Пароли не совпадают");
+      return;
+    }
+
     try {
       const model = new ChangePasswordModel();
       model.oldPassword = passwordData.oldPassword;
@@ -153,6 +161,7 @@ export function ProfileInfo({ currUser, clientBonuses, setUser, membership, isAd
     setPasswordData({
       oldPassword: "",
       newPassword: "",
+      confirmNewPassword: ""
     });
     setDialogError("");
   }
@@ -442,6 +451,17 @@ export function ProfileInfo({ currUser, clientBonuses, setUser, membership, isAd
                 value={passwordData.newPassword}
                 onChange={(e) =>
                   setPasswordData({ ...passwordData, newPassword: e.target.value })
+                }
+                fullWidth
+                required
+              />
+
+              <TextField
+                label="Повторите новый пароль"
+                type="password"
+                value={passwordData.confirmNewPassword}
+                onChange={(e) =>
+                  setPasswordData({ ...passwordData, confirmNewPassword: e.target.value })
                 }
                 fullWidth
                 required

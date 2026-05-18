@@ -138,7 +138,7 @@ export function NotificationDetailsDialog({
                                                 fontWeight: 500,
                                             }}
                                         >
-                                            Отметить как уведомленного
+                                            Подтвердить уведомление клиента
                                         </Button>
                                     </Stack>
                                 </Card>

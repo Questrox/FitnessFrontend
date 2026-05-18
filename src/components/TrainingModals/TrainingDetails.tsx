@@ -233,6 +233,7 @@ export function TrainingDetails({ isOpen, onClose, training, setTraining, refres
         const result = await apiClient.completeTraining(training.id!);
         setTraining(result);
         await onCancelOrCompleteTraining(result.startDate!);
+        await fetchReservations();
       } catch (error: any) {
         showSnackbar(error.message, "error");
       }

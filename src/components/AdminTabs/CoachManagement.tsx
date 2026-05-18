@@ -24,6 +24,16 @@ export function CoachManagement() {
   useEffect(() => {
     fetchCoaches();
   }, [])
+
+  const getExperienceText = (years: number) => {
+    const lastDigit = years % 10;
+    const lastTwoDigits = years % 100;
+    
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return `${years} лет`;
+    if (lastDigit === 1) return `${years} год`;
+    if (lastDigit >= 2 && lastDigit <= 4) return `${years} года`;
+    return `${years} лет`;
+  };
   
   const fetchCoaches = async () => {
     setIsLoading(true);
@@ -137,8 +147,7 @@ export function CoachManagement() {
                   }}
                 >
                   <Typography variant="caption" fontWeight={600}>
-                    {coach.experience}{" "}
-                    {coach.experience === 1 ? "год" : "лет"}
+                    {getExperienceText(coach?.experience!)}
                   </Typography>
                 </Box>
               </Box>
