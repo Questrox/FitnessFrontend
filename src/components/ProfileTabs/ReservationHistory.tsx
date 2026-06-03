@@ -23,7 +23,7 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import { ClientDTO, CreatePaymentDTO, TrainingReservationDTO } from "../../api/g";
 import { apiClient } from "../../api/apiClient";
 import { useEffect, useRef, useState } from "react";
-import { PaymentForm } from "./PaymentDialog";
+import { PaymentForm } from "./PaymentForm";
 import { useConfirm } from "material-ui-confirm";
 
 interface ReservationHistoryProps {

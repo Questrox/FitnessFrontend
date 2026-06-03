@@ -3,18 +3,14 @@ import {
   Card,
   CardContent,
   Typography,
-  Checkbox,
-  FormControlLabel,
   Stack,
   Chip,
   GridLegacy,
   Pagination,
 } from "@mui/material";
-import FilterListIcon from "@mui/icons-material/FilterList";
 import HistoryIcon from "@mui/icons-material/History";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import CancelIcon from "@mui/icons-material/Cancel";
 import { MembershipDTO } from "../../api/g";
 import { useRef, useState } from "react";
 

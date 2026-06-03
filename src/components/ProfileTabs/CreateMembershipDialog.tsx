@@ -22,7 +22,7 @@ import { ClientDTO, CreateMembershipDTO, MembershipDTO, MembershipTypeDTO } from
 import { DatePicker } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
 import { apiClient } from "../../api/apiClient";
-import { PaymentForm } from "./PaymentDialog";
+import { PaymentForm } from "./PaymentForm";
 
 interface CreateMembershipDialogProps {
   open: boolean;

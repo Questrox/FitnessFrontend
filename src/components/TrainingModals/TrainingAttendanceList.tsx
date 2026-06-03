@@ -8,7 +8,6 @@ import {
   Chip,
   CircularProgress,
 } from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { ReservationForTrainingDTO, TrainingDTO } from "../../api/g";
 import { useAuth } from "../../context/AuthContext";
 
